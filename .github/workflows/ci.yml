@@ -1,0 +1,177 @@
+# 命理师 AI — 持续集成与云构建
+#
+# 三个任务:
+#   test     Ubuntu:分析 + 单元测试(最便宜,每次推送都跑)
+#   windows  Windows:编桌面版,产出 zip
+#   ios      macOS:编 iOS。没有签名密钥时产出未签名 .app(证明能编过);
+#            配好 Apple 密钥后自动签名、打 .ipa 并上传 TestFlight。
+#
+# macOS 机器按 10 倍分钟计费,所以 ios 任务只在 main 分支或手动触发时跑。
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      upload_testflight:
+        description: "签名并上传 TestFlight(需已配置 Apple 密钥)"
+        type: boolean
+        default: false
+
+env:
+  FLUTTER_VERSION: "3.47.3"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run: { working-directory: app }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test --reporter expanded
+
+  server:
+    runs-on: ubuntu-latest
+    defaults:
+      run: { working-directory: server }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: server/package-lock.json }
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+
+  windows:
+    needs: test
+    runs-on: windows-latest
+    defaults:
+      run: { working-directory: app }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - run: flutter build windows --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mingli-ai-windows
+          path: app/build/windows/x64/runner/Release/
+          retention-days: 14
+
+  ios:
+    needs: test
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-15
+    defaults:
+      run: { working-directory: app }
+    env:
+      # 有这些 secrets 才走签名分支
+      HAS_SIGNING: ${{ secrets.IOS_P12_BASE64 != '' && secrets.IOS_PROFILE_BASE64 != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - run: flutter precache --ios
+
+      # ---------- 未签名构建:证明 iOS 能编过,产出 Runner.app ----------
+      - name: Build (unsigned)
+        if: env.HAS_SIGNING != 'true'
+        run: |
+          flutter build ios --release --no-codesign
+          cd build/ios/iphoneos && zip -r ../../../Runner-unsigned.zip Runner.app
+      - uses: actions/upload-artifact@v4
+        if: env.HAS_SIGNING != 'true'
+        with:
+          name: mingli-ai-ios-unsigned
+          path: app/Runner-unsigned.zip
+          retention-days: 14
+
+      # ---------- 签名构建:导入证书与描述文件 → .ipa → TestFlight ----------
+      - name: Import signing assets
+        if: env.HAS_SIGNING == 'true'
+        env:
+          P12_BASE64: ${{ secrets.IOS_P12_BASE64 }}
+          P12_PASSWORD: ${{ secrets.IOS_P12_PASSWORD }}
+          PROFILE_BASE64: ${{ secrets.IOS_PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          CERT=$RUNNER_TEMP/cert.p12
+          PROFILE=$RUNNER_TEMP/profile.mobileprovision
+          KEYCHAIN=$RUNNER_TEMP/build.keychain-db
+          echo -n "$P12_BASE64" | base64 --decode > "$CERT"
+          echo -n "$PROFILE_BASE64" | base64 --decode > "$PROFILE"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$CERT" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security list-keychain -d user -s "$KEYCHAIN"
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          UUID=$(/usr/libexec/PlistBuddy -c 'Print UUID' /dev/stdin <<< "$(security cms -D -i "$PROFILE")")
+          cp "$PROFILE" ~/Library/MobileDevice/Provisioning\ Profiles/"$UUID".mobileprovision
+          echo "PROFILE_UUID=$UUID" >> "$GITHUB_ENV"
+
+      - name: Write ExportOptions.plist
+        if: env.HAS_SIGNING == 'true'
+        env:
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>${TEAM_ID}</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>provisioningProfiles</key><dict>
+              <key>${BUNDLE_ID}</key><string>${PROFILE_UUID}</string>
+            </dict>
+            <key>uploadSymbols</key><true/>
+          </dict></plist>
+          EOF
+
+      - name: Build IPA
+        if: env.HAS_SIGNING == 'true'
+        run: |
+          flutter build ipa --release \
+            --build-number=${{ github.run_number }} \
+            --export-options-plist="$RUNNER_TEMP/ExportOptions.plist"
+      - uses: actions/upload-artifact@v4
+        if: env.HAS_SIGNING == 'true'
+        with:
+          name: mingli-ai-ios-ipa
+          path: app/build/ios/ipa/*.ipa
+          retention-days: 30
+
+      - name: Upload to TestFlight
+        if: env.HAS_SIGNING == 'true' && (github.event.inputs.upload_testflight == 'true' || github.ref == 'refs/heads/main')
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_BASE64: ${{ secrets.ASC_KEY_BASE64 }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/private_keys
+          echo -n "$ASC_KEY_BASE64" | base64 --decode > ~/private_keys/AuthKey_"$ASC_KEY_ID".p8
+          xcrun altool --upload-app -f build/ios/ipa/*.ipa -t ios \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"

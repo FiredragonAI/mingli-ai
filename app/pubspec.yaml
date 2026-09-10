@@ -1,0 +1,54 @@
+name: mingli_ai
+description: "命理师 AI —— 八字 · 五行 · 运势 · 合婚 · 姓名 · 黄历"
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.6.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # 状态与存储
+  provider: ^6.1.2
+  shared_preferences: ^2.3.2
+  sqflite: ^2.3.3
+  sqflite_common_ffi: ^2.3.3        # Windows 桌面端 sqlite 支持
+  path: ^1.9.0
+  path_provider: ^2.1.4
+
+  # 网络
+  http: ^1.2.2
+
+  # 影像(手相/面相端侧处理)
+  camera: ^0.11.0+2
+  image_picker: ^1.1.2
+  image: ^4.2.0                      # 纯 Dart 图像处理,Windows 可用
+  tflite_flutter: ^0.11.0            # Windows 端 MediaPipe 模型推理
+
+  # 展示
+  fl_chart: ^0.69.0                  # 五行雷达图 / 运势曲线
+  flutter_markdown: ^0.7.4           # 渲染 AI 解读
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/models/
+    - assets/data/
+  # 思源宋体为可选资源。下载 SourceHanSerifSC-Regular/Bold.otf 到 assets/fonts/ 后取消下面注释;
+  # 未放置时主题回退到系统中文字体。
+  # fonts:
+  #   - family: SourceHanSerif
+  #     fonts:
+  #       - asset: assets/fonts/SourceHanSerifSC-Regular.otf
+  #       - asset: assets/fonts/SourceHanSerifSC-Bold.otf
+  #         weight: 700

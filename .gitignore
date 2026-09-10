@@ -1,0 +1,23 @@
+# Flutter
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/build/
+app/ios/Pods/
+app/ios/.symlinks/
+app/ios/Flutter/ephemeral/
+app/windows/flutter/ephemeral/
+app/.idea/
+*.iml
+
+# 大文件资源(自行下载)
+app/assets/models/*.tflite
+app/assets/fonts/*.otf
+app/assets/data/kangxi_strokes.json
+
+# Node
+server/node_modules/
+server/dist/
+server/.env
+
+.DS_Store
