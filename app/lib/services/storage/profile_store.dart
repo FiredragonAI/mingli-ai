@@ -17,6 +17,7 @@ class ProfileStore {
   static const _kServer = 'settings.serverUrl';
   static const _kDeviceId = 'settings.deviceId';
   static const _kConsent = 'settings.consent.v1';
+  static const _kLocalInterpretation = 'settings.localInterpretation';
 
   Future<List<BirthInput>> loadProfiles() async {
     final sp = await SharedPreferences.getInstance();
@@ -61,6 +62,13 @@ class ProfileStore {
 
   Future<void> setBiometricConsent(bool v) async =>
       (await SharedPreferences.getInstance()).setBool(_kConsent, v);
+
+  /// 是否使用离线本地解读(规则引擎生成文字,不联网、不经过任何 AI API)。
+  Future<bool> loadUseLocalInterpretation() async =>
+      (await SharedPreferences.getInstance()).getBool(_kLocalInterpretation) ?? false;
+
+  Future<void> setUseLocalInterpretation(bool v) async =>
+      (await SharedPreferences.getInstance()).setBool(_kLocalInterpretation, v);
 
   static BirthInput _fromJson(Map<String, dynamic> j) => BirthInput(
         year: j['year'] as int,

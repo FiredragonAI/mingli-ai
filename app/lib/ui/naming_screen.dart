@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/interpret/local_interpreter.dart';
 import '../core/naming/name_analysis.dart';
 import '../core/naming/numerology.dart';
 import '../services/app_state.dart';
@@ -144,6 +145,7 @@ class _NamingScreenState extends State<NamingScreen> {
                 AiReadingCard(
                   title: 'AI 姓名解读',
                   load: (api) => api.interpretName(r.toJson(), chart?.toJson()),
+                  localText: () => localInterpretName(r),
                 ),
               ],
               const Disclaimer(),

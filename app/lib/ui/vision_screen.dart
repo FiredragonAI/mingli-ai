@@ -5,6 +5,7 @@ import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../core/interpret/local_interpreter.dart';
 import '../core/vision/face_features.dart';
 import '../core/vision/palm_features.dart';
 import '../services/app_state.dart';
@@ -183,6 +184,7 @@ class _VisionScreenState extends State<VisionScreen> {
                   key: ValueKey(features.hashCode),
                   title: isPalm ? 'AI 手相解读' : 'AI 面相解读',
                   load: (api) => isPalm ? api.interpretPalm(features, chart?.toJson()) : api.interpretFace(features, chart?.toJson()),
+                  localText: () => isPalm ? localInterpretPalm(_palm!) : localInterpretFace(_face!),
                 ),
               ],
               const Disclaimer(),

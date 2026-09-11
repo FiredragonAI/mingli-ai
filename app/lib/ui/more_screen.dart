@@ -26,7 +26,14 @@ class MoreScreen extends StatelessWidget {
               _tile(context, Icons.back_hand_outlined, '手相 AI', '照片仅在本机分析', const VisionScreen(mode: VisionMode.palm)),
               _tile(context, Icons.face_outlined, '面相 AI', '三停五眼 · 十二宫', const VisionScreen(mode: VisionMode.face)),
               const Divider(),
-              _tile(context, Icons.settings_outlined, '设置', '档案管理 · 解读服务 ${state.serverReachable ? '已连接' : '未连接'}', const SettingsScreen()),
+              _tile(
+                context,
+                Icons.settings_outlined,
+                '设置',
+                '档案管理 · 解读服务 '
+                    '${state.useLocalInterpretation ? '离线本地' : state.serverReachable ? '已连接' : '未连接'}',
+                const SettingsScreen(),
+              ),
             ],
           ),
         ),

@@ -70,17 +70,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 24),
               Text('解读服务', style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
-              TextField(
-                controller: _url,
-                decoration: InputDecoration(
-                  labelText: '服务器地址',
-                  helperText: state.serverReachable ? '已连接' : '未连接',
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.check),
-                    onPressed: () => state.setServerUrl(_url.text),
+              SwitchListTile(
+                title: const Text('离线本地解读'),
+                subtitle: const Text('由本机规则引擎生成解读文字,不联网、不使用任何 AI API;'
+                    '文字相对朴素,但排盘数据完全一致,可随时切回云端 AI'),
+                value: state.useLocalInterpretation,
+                onChanged: (v) => state.setUseLocalInterpretation(v),
+              ),
+              const SizedBox(height: 8),
+              Opacity(
+                opacity: state.useLocalInterpretation ? 0.5 : 1,
+                child: IgnorePointer(
+                  ignoring: state.useLocalInterpretation,
+                  child: TextField(
+                    controller: _url,
+                    decoration: InputDecoration(
+                      labelText: '云端服务器地址',
+                      helperText: state.useLocalInterpretation
+                          ? '已切换到离线本地解读,此项暂不生效'
+                          : state.serverReachable
+                              ? '已连接'
+                              : '未连接',
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.check),
+                        onPressed: () => state.setServerUrl(_url.text),
+                      ),
+                    ),
+                    onSubmitted: state.setServerUrl,
                   ),
                 ),
-                onSubmitted: state.setServerUrl,
               ),
               const SizedBox(height: 24),
               Text('隐私', style: theme.textTheme.titleMedium),

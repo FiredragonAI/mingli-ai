@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/bazi/bazi_chart.dart';
+import '../core/interpret/local_interpreter.dart';
 import '../services/app_state.dart';
 import 'birth_input_screen.dart';
 import 'widgets/ai_reading_card.dart';
@@ -105,6 +106,7 @@ class MarriageScreen extends StatelessWidget {
                 AiReadingCard(
                   title: 'AI 合婚解读',
                   load: (api) => api.interpretMarriage(result.toJson()),
+                  localText: () => localInterpretMarriage(result),
                 ),
               ],
               const Disclaimer(),

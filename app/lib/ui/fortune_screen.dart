@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/fortune/daily_fortune.dart';
+import '../core/interpret/local_interpreter.dart';
 import '../services/app_state.dart';
 import 'widgets/ai_reading_card.dart';
 import 'widgets/disclaimer.dart';
@@ -129,6 +130,7 @@ class FortuneScreen extends StatelessWidget {
               AiReadingCard(
                 title: 'AI 今日指引',
                 load: (api) => api.interpretDaily(chart.toJson(), today.toJson()),
+                localText: () => localInterpretDaily(chart, today),
               ),
               const Disclaimer(),
             ],

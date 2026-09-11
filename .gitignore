@@ -10,10 +10,8 @@ app/windows/flutter/ephemeral/
 app/.idea/
 *.iml
 
-# 大文件资源(自行下载)
-app/assets/models/*.tflite
+# 字体仍需自行下载(见 pubspec.yaml 里的注释),体积大且有单独版权条款
 app/assets/fonts/*.otf
-app/assets/data/kangxi_strokes.json
 
 # Node
 server/node_modules/

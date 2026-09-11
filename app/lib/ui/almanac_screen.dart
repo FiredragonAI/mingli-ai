@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/almanac/almanac.dart';
+import '../core/interpret/local_interpreter.dart';
 import '../services/app_state.dart';
 import 'theme.dart';
 import 'widgets/ai_reading_card.dart';
@@ -142,6 +143,7 @@ class _AlmanacScreenState extends State<AlmanacScreen> {
               AiReadingCard(
                 title: 'AI 择日建议',
                 load: (api) => api.interpretAlmanac(a.toJson(), chart?.toJson()),
+                localText: () => localInterpretAlmanac(a, chart: chart),
               ),
               const Disclaimer(),
             ],

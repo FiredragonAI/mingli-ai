@@ -1,30 +1,29 @@
-// This is a basic Flutter widget test.
+// 应用级冒烟测试:首次启动应直接落在"填写出生信息"页。
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// 原文件是 `flutter create` 生成的计数器模板测试(引用不存在的 `MyApp`),
+// 从未适配过本项目,替换为真正跑得动的测试。复现 `main()` 里的
+// Provider 装配——`MingliApp` 本身不含 Provider,由外层包裹。
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:mingli_ai/main.dart';
+import 'package:mingli_ai/services/app_state.dart';
+import 'package:mingli_ai/services/storage/profile_store.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('首次启动无档案时显示出生信息填写页', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final state = AppState(ProfileStore());
+    await state.init();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(value: state, child: const MingliApp()),
+    );
+    await tester.pumpAndSettle();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('请填写出生信息'), findsOneWidget);
+    expect(find.text('出生日期(公历)'), findsOneWidget);
   });
 }

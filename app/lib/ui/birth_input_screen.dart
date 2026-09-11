@@ -31,10 +31,7 @@ class _BirthInputScreenState extends State<BirthInputScreen> {
   late TimeOfDay _time;
   Gender _gender = Gender.male;
   City? _city;
-  final _lonCtrl = TextEditingController();
   final _nameCtrl = TextEditingController();
-  bool _trueSolar = true;
-  ZiHourMode _ziMode = ZiHourMode.nextDay;
   bool _unknownTime = false;
 
   @override
@@ -45,22 +42,17 @@ class _BirthInputScreenState extends State<BirthInputScreen> {
       _date = DateTime(i.year, i.month, i.day);
       _time = TimeOfDay(hour: i.hour, minute: i.minute);
       _gender = i.gender;
-      _lonCtrl.text = i.longitude.toStringAsFixed(2);
       _nameCtrl.text = i.name;
-      _trueSolar = i.useTrueSolarTime;
-      _ziMode = i.ziHourMode;
-      _city = cities.where((c) => c.name == i.placeName).firstOrNull;
+      _city = cities.where((c) => c.name == i.placeName).firstOrNull ?? cities.first;
     } else {
       _date = DateTime(1995, 6, 15);
       _time = const TimeOfDay(hour: 12, minute: 0);
       _city = cities.first;
-      _lonCtrl.text = _city!.longitude.toStringAsFixed(2);
     }
   }
 
   @override
   void dispose() {
-    _lonCtrl.dispose();
     _nameCtrl.dispose();
     super.dispose();
   }
@@ -82,11 +74,6 @@ class _BirthInputScreenState extends State<BirthInputScreen> {
   }
 
   void _submit() {
-    final lon = double.tryParse(_lonCtrl.text);
-    if (lon == null || lon < -180 || lon > 180) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('经度需在 −180 到 180 之间')));
-      return;
-    }
     final input = BirthInput(
       year: _date.year,
       month: _date.month,
@@ -94,12 +81,16 @@ class _BirthInputScreenState extends State<BirthInputScreen> {
       hour: _unknownTime ? 12 : _time.hour,
       minute: _unknownTime ? 0 : _time.minute,
       gender: _gender,
-      longitude: lon,
+      longitude: _city?.longitude ?? 116.41,
       latitude: _city?.latitude ?? 0,
       placeName: _city?.name ?? '',
       timezoneHours: _city?.timezone ?? 8,
-      useTrueSolarTime: _trueSolar && !_unknownTime,
-      ziHourMode: _ziMode,
+      // 真太阳时按出生地经度自动叠加,不再由用户手动开关——省级坐标已经
+      // 比只按北京时间准,又不需要用户理解"真太阳时"这个概念。
+      // 时间不确定时(按正午排盘)真太阳时修正意义不大,直接关闭。
+      useTrueSolarTime: !_unknownTime,
+      // 晚子时统一按"次日"处理,这是多数排盘软件的默认口径。
+      ziHourMode: ZiHourMode.nextDay,
       name: _nameCtrl.text.trim(),
     );
 
@@ -171,48 +162,11 @@ class _BirthInputScreenState extends State<BirthInputScreen> {
               DropdownButtonFormField<City>(
                 value: _city,
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: '出生地'),
+                decoration: const InputDecoration(labelText: '出生地(省/直辖市)'),
                 items: [
                   for (final c in cities) DropdownMenuItem(value: c, child: Text(c.label)),
                 ],
-                onChanged: (c) => setState(() {
-                  _city = c;
-                  if (c != null) _lonCtrl.text = c.longitude.toStringAsFixed(2);
-                }),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _lonCtrl,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                decoration: const InputDecoration(
-                  labelText: '经度(东经为正)',
-                  helperText: '选城市自动填入;县级以下地区可手动微调',
-                ),
-              ),
-              const SizedBox(height: 12),
-              SwitchListTile(
-                title: const Text('按真太阳时排盘'),
-                subtitle: const Text('叠加经度差与均时差,专业口径'),
-                value: _trueSolar && !_unknownTime,
-                onChanged: _unknownTime ? null : (v) => setState(() => _trueSolar = v),
-              ),
-              ListTile(
-                title: const Text('晚子时(23:00 后)'),
-                subtitle: Text(_ziMode.label),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () async {
-                  final m = await showModalBottomSheet<ZiHourMode>(
-                    context: context,
-                    builder: (_) => Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        for (final m in ZiHourMode.values)
-                          ListTile(title: Text(m.label), onTap: () => Navigator.pop(context, m)),
-                      ],
-                    ),
-                  );
-                  if (m != null) setState(() => _ziMode = m);
-                },
+                onChanged: (c) => setState(() => _city = c),
               ),
               const SizedBox(height: 24),
               FilledButton(onPressed: _submit, child: Text(widget.onSubmit != null ? '确定' : '开始排盘')),

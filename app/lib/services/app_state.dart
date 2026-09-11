@@ -26,6 +26,9 @@ class AppState extends ChangeNotifier {
   bool biometricConsent = false;
   bool serverReachable = false;
 
+  /// 开启后所有"AI 解读"卡片改用本机规则引擎生成文字,不联网、不经过任何 API。
+  bool useLocalInterpretation = false;
+
   ApiClient? _api;
   ApiClient get api => _api ??= ApiClient(baseUrl: serverUrl, deviceId: deviceId);
 
@@ -37,6 +40,7 @@ class AppState extends ChangeNotifier {
     serverUrl = await _store.loadServerUrl();
     deviceId = await _store.deviceId();
     biometricConsent = await _store.hasBiometricConsent();
+    useLocalInterpretation = await _store.loadUseLocalInterpretation();
     if (active != null) _recompute();
     notifyListeners();
     serverReachable = await api.ping();
@@ -111,6 +115,12 @@ class AppState extends ChangeNotifier {
   Future<void> revokeBiometricConsent() async {
     biometricConsent = false;
     await _store.setBiometricConsent(false);
+    notifyListeners();
+  }
+
+  Future<void> setUseLocalInterpretation(bool v) async {
+    useLocalInterpretation = v;
+    await _store.setUseLocalInterpretation(v);
     notifyListeners();
   }
 

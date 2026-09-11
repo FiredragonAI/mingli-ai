@@ -5,6 +5,7 @@ import '../core/bazi/bazi_chart.dart';
 import '../core/bazi/shen_sha.dart';
 import '../core/bazi/ten_gods.dart';
 import '../core/calendar/sexagenary.dart';
+import '../core/interpret/local_interpreter.dart';
 import '../services/app_state.dart';
 import 'birth_input_screen.dart';
 import 'theme.dart';
@@ -51,6 +52,7 @@ class ChartScreen extends StatelessWidget {
               AiReadingCard(
                 title: 'AI 命理解读',
                 load: (api) => api.interpretBazi(chart.toJson()),
+                localText: () => localInterpretBazi(chart),
               ),
               const Disclaimer(),
             ],
