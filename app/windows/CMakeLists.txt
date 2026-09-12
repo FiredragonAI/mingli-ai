@@ -106,3 +106,9 @@ install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
 install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   CONFIGURATIONS Profile;Release
   COMPONENT Runtime)
+
+# TensorFlow Lite C 动态库(tflite_flutter 在 Windows 上不自带,需手动打包)。
+# 源文件放在 app/blobs/,随仓库提供;运行时 tflite_flutter 会到 <exe 目录>/blobs/ 找它。
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../blobs/libtensorflowlite_c-win.dll"
+  DESTINATION "${INSTALL_BUNDLE_LIB_DIR}/blobs"
+  COMPONENT Runtime)

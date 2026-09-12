@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
@@ -59,10 +60,30 @@ class _VisionScreenState extends State<VisionScreen> {
     return ok == true;
   }
 
+  static bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
+  /// `image` 包能解码的格式。HEIC/AVIF 等目前解不了,选了会给出明确提示。
+  static const _decodable = <String>[
+    'jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'tif', 'tiff', 'tga', 'ico', 'psd', 'pnm', 'pbm', 'pgm', 'ppm',
+  ];
+
+  /// 选图。桌面端用系统文件对话框,不限制扩展名;移动端走相册/相机。
+  Future<String?> _pickPath(ImageSource source) async {
+    if (source == ImageSource.gallery && _isDesktop) {
+      final f = await openFile(acceptedTypeGroups: const [
+        XTypeGroup(label: '图片', extensions: _decodable),
+        XTypeGroup(label: '所有文件'),
+      ]);
+      return f?.path;
+    }
+    final x = await _picker.pickImage(source: source, maxWidth: 1600, imageQuality: 92);
+    return x?.path;
+  }
+
   Future<void> _pick(ImageSource source) async {
     if (!await _ensureConsent()) return;
-    final x = await _picker.pickImage(source: source, maxWidth: 1600, imageQuality: 92);
-    if (x == null) return;
+    final path = await _pickPath(source);
+    if (path == null) return;
     setState(() {
       _busy = true;
       _error = null;
@@ -70,24 +91,30 @@ class _VisionScreenState extends State<VisionScreen> {
       _face = null;
     });
     try {
+      final bytes = await File(path).readAsBytes();
+      final decoded = img.decodeImage(bytes);
+      if (decoded == null) {
+        final ext = path.contains('.') ? path.split('.').last.toLowerCase() : '';
+        throw '无法解码这张图片${ext.isEmpty ? '' : '(.$ext)'}。'
+            '支持 JPG / PNG / WebP / BMP / GIF / TIFF 等常见格式;'
+            'iPhone 的 HEIC 照片请先在手机相册里"导出为 JPG"再选择。';
+      }
       if (isPalm) {
-        final lm = await _landmarks.detectHand(x.path);
+        final lm = await _landmarks.detectHand(path);
         if (lm == null) throw '未检测到手掌,请让手掌张开、掌心朝向镜头并占满画面';
-        final decoded = img.decodeImage(await File(x.path).readAsBytes());
-        if (decoded == null) throw '图片解码失败';
         final lines = PalmLineExtractor().extract(decoded, lm);
         _palm = computePalmFeatures(lm, lines);
       } else {
-        final k = await _landmarks.detectFace(x.path);
+        final k = await _landmarks.detectFace(path);
         if (k == null) throw '未检测到正脸,请正对镜头、光线均匀';
         _face = computeFaceFeatures(k);
       }
     } catch (e) {
       _error = e.toString();
     } finally {
-      // 处理完立刻删除临时文件,照片不留在磁盘
+      // 相机拍的临时文件处理完立刻删除,照片不留在磁盘;用户自己选的文件不动
       try {
-        if (source == ImageSource.camera) await File(x.path).delete();
+        if (source == ImageSource.camera) await File(path).delete();
       } catch (_) {}
       if (mounted) setState(() => _busy = false);
     }
@@ -123,14 +150,17 @@ class _VisionScreenState extends State<VisionScreen> {
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: _busy ? null : () => _pick(ImageSource.camera),
-                              icon: const Icon(Icons.photo_camera_outlined),
-                              label: const Text('拍照'),
+                          // 桌面端 image_picker 不支持相机,只保留选图
+                          if (!_isDesktop) ...[
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: _busy ? null : () => _pick(ImageSource.camera),
+                                icon: const Icon(Icons.photo_camera_outlined),
+                                label: const Text('拍照'),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
+                            const SizedBox(width: 12),
+                          ],
                           Expanded(
                             child: OutlinedButton.icon(
                               onPressed: _busy ? null : () => _pick(ImageSource.gallery),

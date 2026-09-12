@@ -33,6 +33,11 @@ flutter test
 | `assets/models/hand_landmark_full.tflite` | MediaPipe 手部关键点 | 已随仓库提供(Apache-2.0) |
 | `assets/models/face_landmark.tflite` | MediaPipe 面部 468 点 | 已随仓库提供(Apache-2.0) |
 | `assets/fonts/SourceHanSerifSC-*.otf` | 思源宋体 | 可选;放入后取消 `pubspec.yaml` 里 fonts 段的注释 |
+| `blobs/libtensorflowlite_c-win.dll` | TensorFlow Lite C 动态库(Windows 端跑手相/面相模型) | 已随仓库提供;`windows/CMakeLists.txt` 打包到 `<exe>/blobs/` |
+
+**Windows 端侧模型自检**:设环境变量 `MINGLI_SELFTEST=1` 启动 exe,不进界面,
+把两个模型的张量形状与一次空跑结果写到 `%TEMP%\mingli_selftest.txt` 后退出。
+改动 DLL 或模型后先跑这个。
 
 ### 运行
 
