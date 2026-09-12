@@ -131,8 +131,8 @@ class _BirthInputScreenState extends State<BirthInputScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              if (widget.firstRun) ...[
-                // 语言放在最前面:用户第一眼就能换成自己看得懂的
+              // 排盘页(自己的档案)顶部常驻语言切换;合婚里填对方信息的页面不放
+              if (widget.onSubmit == null) ...[
                 SegmentedButton<AppLanguage>(
                   segments: [for (final l in AppLanguage.values) ButtonSegment(value: l, label: Text(l.nativeName))],
                   selected: {context.watch<AppState>().language},
@@ -140,6 +140,8 @@ class _BirthInputScreenState extends State<BirthInputScreen> {
                   showSelectedIcon: false,
                 ),
                 const SizedBox(height: 20),
+              ],
+              if (widget.firstRun) ...[
                 Text(s.firstRunTitle, style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 4),
                 Text(s.privacyNote, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
