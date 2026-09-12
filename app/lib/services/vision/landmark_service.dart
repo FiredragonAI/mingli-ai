@@ -23,6 +23,9 @@ abstract class LandmarkService {
   /// 检测面部关键点并转为命名点。检测不到返回 null。
   Future<FaceKeyPoints?> detectFace(String imagePath);
 
+  /// 上一次检测"在照片里哪儿找到的目标"的说明,给用户看;平台不提供时为 null。
+  String? get lastLocationNote => null;
+
   /// 按平台选实现。
   static LandmarkService forPlatform() {
     if (Platform.isIOS) return IosVisionLandmarkService();
@@ -33,6 +36,9 @@ abstract class LandmarkService {
 /// iOS:Apple Vision。Swift 侧实现见 `ios/Runner/VisionPlugin.swift`。
 class IosVisionLandmarkService implements LandmarkService {
   static const _channel = MethodChannel('mingli/vision');
+
+  @override
+  String? get lastLocationNote => null;
 
   @override
   Future<HandLandmarks?> detectHand(String imagePath) async {

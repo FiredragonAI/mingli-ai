@@ -1,13 +1,15 @@
 /// Windows(及其他无系统级视觉 API 的平台):用 tflite_flutter 跑 MediaPipe 模型。
 ///
-/// 模型文件放在 `assets/models/`:
-/// - `hand_landmark_full.tflite`   输入 224×224×3 float[0,1],输出 63 = 21×(x,y,z)
-/// - `face_landmark.tflite`         输入 192×192×3 float[0,1],输出 1404 = 468×(x,y,z)
+/// 两级流水线,与 MediaPipe 官方图一致:
 ///
-/// 这两个是"landmark"阶段模型,假定输入已是裁好的 ROI。v1 通过取景框引导用户
-/// 把手/脸放满画面来省掉检测阶段;后续可加 palm_detection / face_detection 两级流水线。
+///   整张照片 → **检测**(BlazeFace / BlazePalm,找到位置与倾斜角)
+///            → **裁切摆正**([Roi])
+///            → **关键点**(face_landmark 468 点 / hand_landmark 21 点)
+///            → 坐标映射回原图
 ///
-/// 输出张量的顺序不同版本模型不一样,所以不按下标猜,而是按**形状**匹配:
+/// 所以全身照、合照、歪着拍的都能用;检测失败时退回"假定目标填满画面"。
+///
+/// 模型文件在 `assets/models/`。输出张量不按下标猜,按**形状**匹配:
 /// 元素数 63 / 1404 的是关键点,元素数 1 的是存在概率(手模型另有 1 个是左右手)。
 library;
 
@@ -21,41 +23,119 @@ import '../../core/vision/geometry.dart';
 import '../../core/vision/palm_features.dart';
 import 'landmark_service.dart';
 import 'mediapipe_face_map.dart';
+import 'roi.dart';
+import 'ssd_anchors.dart';
 
 const handModelAsset = 'assets/models/hand_landmark_full.tflite';
 const faceModelAsset = 'assets/models/face_landmark.tflite';
+const faceDetFullAsset = 'assets/models/face_detection_full_range.tflite';
+const faceDetShortAsset = 'assets/models/face_detection_short_range.tflite';
+const palmDetAsset = 'assets/models/palm_detection_full.tflite';
+
+/// 检测阶段返回的定位结果。
+class Located {
+  const Located(this.roi, this.confidence, this.coverage);
+  final Roi roi;
+
+  /// 检测置信度;兜底(整图)时为 0。
+  final double confidence;
+
+  /// 目标框占画面短边的比例,用来给用户提示"脸太小"。
+  final double coverage;
+}
 
 class TfliteLandmarkService implements LandmarkService {
-  Interpreter? _hand;
-  Interpreter? _face;
+  final _cache = <String, Interpreter>{};
+  final _anchors = <String, List<Anchor>>{};
 
-  Future<Interpreter> _loadHand() async => _hand ??= await Interpreter.fromAsset(handModelAsset);
-  Future<Interpreter> _loadFace() async => _face ??= await Interpreter.fromAsset(faceModelAsset);
+  String? _lastNote;
+
+  @override
+  String? get lastLocationNote => _lastNote;
+
+  void _noteLocated(String what, Located l) {
+    if (l.confidence == 0) {
+      _lastNote = '未能在照片中单独定位到$what,已按整张照片分析;若结果不准,请换一张$what更清晰、占画面更大的照片。';
+      return;
+    }
+    final pct = (l.coverage * 100).round();
+    final sizeHint = l.coverage < 0.15 ? ',$what在照片里偏小,细节可能不够,建议换近一点的照片' : '';
+    _lastNote = '已在照片中定位到$what(置信度 ${(l.confidence * 100).round()}%,约占画面短边 $pct%)$sizeHint。';
+  }
+
+  Future<Interpreter> _model(String asset) async => _cache[asset] ??= await Interpreter.fromAsset(asset);
+
+  // ------------------------------------------------------------------ 检测
+
+  Future<Detection?> _detect(img.Image im, String asset, SsdAnchorOptions o) async {
+    final it = await _model(asset);
+    final anchors = _anchors[asset] ??= generateAnchors(o);
+    final input = warpRoiToTensor(im, Roi.wholeImage(im), o.inputSize);
+    final outputs = _allocateOutputs(it);
+    it.runForMultipleInputs([input], outputs);
+
+    List<double>? boxes, scores;
+    for (final v in outputs.values) {
+      final flat = _flatten(v);
+      if (flat.length == anchors.length * o.valuesPerBox) boxes = flat;
+      if (flat.length == anchors.length) scores = flat;
+    }
+    if (boxes == null || scores == null) return null;
+    return decodeBest(boxes, scores, anchors, o);
+  }
+
+  /// 找脸:先全距模型(远处小脸),再短距模型(近距自拍),都没有就用整图。
+  Future<Located> locateFace(img.Image im) async {
+    for (final (asset, o) in [(faceDetFullAsset, faceFullRangeOptions), (faceDetShortAsset, faceShortRangeOptions)]) {
+      final d = await _detect(im, asset, o);
+      if (d != null) {
+        // 关键点 0 右眼、1 左眼;两眼连线摆平;框放大 1.5 倍
+        final roi = Roi.fromDetection(d, im, kpStart: 0, kpEnd: 1, targetAngle: 0, scale: 1.5);
+        return Located(roi, d.score, _coverage(d, im));
+      }
+    }
+    return Located(Roi.wholeImage(im), 0, 1);
+  }
+
+  /// 找手掌:关键点 0 腕、2 中指根;让手指朝上;框放大 2.6 倍并沿手指方向上移半个框。
+  Future<Located> locateHand(img.Image im) async {
+    final d = await _detect(im, palmDetAsset, palmOptions);
+    if (d != null) {
+      final roi = Roi.fromDetection(d, im, kpStart: 0, kpEnd: 2, targetAngle: 3.141592653589793 / 2, scale: 2.6, shiftY: -0.5);
+      return Located(roi, d.score, _coverage(d, im));
+    }
+    return Located(Roi.wholeImage(im), 0, 1);
+  }
+
+  double _coverage(Detection d, img.Image im) {
+    final short = im.width < im.height ? im.width : im.height;
+    final box = (d.width * im.width) > (d.height * im.height) ? d.width * im.width : d.height * im.height;
+    return box / short;
+  }
+
+  // ------------------------------------------------------------------ 关键点
 
   @override
   Future<HandLandmarks?> detectHand(String imagePath) async {
     final decoded = img.decodeImage(await File(imagePath).readAsBytes());
     if (decoded == null) return null;
-    final interpreter = await _loadHand();
+    final located = await locateHand(decoded);
+    _noteLocated('手掌', located);
+    final it = await _model(handModelAsset);
 
-    final size = interpreter.getInputTensor(0).shape[1];
-    final input = _toFloatTensor(decoded, size);
-    final outputs = _allocateOutputs(interpreter);
-    interpreter.runForMultipleInputs([input], outputs);
+    final size = it.getInputTensor(0).shape[1];
+    final outputs = _allocateOutputs(it);
+    it.runForMultipleInputs([warpRoiToTensor(decoded, located.roi, size)], outputs);
 
-    final byCount = _flattenByCount(interpreter, outputs);
-    final landmarks = byCount[63];
+    final landmarks = _firstWithCount(outputs, 63);
     if (landmarks == null) return null;
-
-    // 元素数为 1 的张量:第一个是存在概率,第二个是左右手(MediaPipe 顺序)
-    final scalars = _scalarOutputs(interpreter, outputs);
+    final scalars = _scalarOutputs(outputs);
     final presence = scalars.isNotEmpty ? scalars[0] : 1.0;
     if (presence < 0.5) return null;
     final handedness = scalars.length > 1 ? scalars[1] : 0.5;
 
     final pts = <Point2>[
-      for (var i = 0; i < 21; i++)
-        Point2(landmarks[i * 3] / size * decoded.width, landmarks[i * 3 + 1] / size * decoded.height),
+      for (var i = 0; i < 21; i++) located.roi.toImage(landmarks[i * 3] / size, landmarks[i * 3 + 1] / size),
     ];
     return HandLandmarks(points: pts, isLeftHand: handedness < 0.5);
   }
@@ -64,51 +144,47 @@ class TfliteLandmarkService implements LandmarkService {
   Future<FaceKeyPoints?> detectFace(String imagePath) async {
     final decoded = img.decodeImage(await File(imagePath).readAsBytes());
     if (decoded == null) return null;
-    final interpreter = await _loadFace();
+    final located = await locateFace(decoded);
+    _noteLocated('人脸', located);
+    final it = await _model(faceModelAsset);
 
-    final size = interpreter.getInputTensor(0).shape[1];
-    final input = _toFloatTensor(decoded, size);
-    final outputs = _allocateOutputs(interpreter);
-    interpreter.runForMultipleInputs([input], outputs);
+    final size = it.getInputTensor(0).shape[1];
+    final outputs = _allocateOutputs(it);
+    it.runForMultipleInputs([warpRoiToTensor(decoded, located.roi, size)], outputs);
 
-    final byCount = _flattenByCount(interpreter, outputs);
-    final flat = byCount[1404];
+    final flat = _firstWithCount(outputs, 1404);
     if (flat == null) return null;
-
-    final scalars = _scalarOutputs(interpreter, outputs);
-    // face_landmark 的置信度是未经 sigmoid 的 logit,>0 即视为有脸
+    final scalars = _scalarOutputs(outputs);
+    // face_landmark 的置信度是未过 sigmoid 的 logit,>0 视为有脸
     if (scalars.isNotEmpty && scalars[0] < 0) return null;
 
     final pts468 = <Point2>[
-      for (var i = 0; i < 468; i++)
-        Point2(flat[i * 3] / size * decoded.width, flat[i * 3 + 1] / size * decoded.height),
+      for (var i = 0; i < 468; i++) located.roi.toImage(flat[i * 3] / size, flat[i * 3 + 1] / size),
     ];
     return faceKeyPointsFromMediaPipe(pts468);
   }
 
-  /// 按每个输出张量的实际形状分配缓冲区。
+  // ------------------------------------------------------------------ 工具
+
   Map<int, Object> _allocateOutputs(Interpreter it) {
     final out = <int, Object>{};
     for (var i = 0; i < it.getOutputTensors().length; i++) {
       final shape = it.getOutputTensor(i).shape;
-      final n = shape.fold(1, (a, b) => a * b);
-      out[i] = List.filled(n, 0.0).reshape(shape);
+      out[i] = List.filled(shape.fold(1, (a, b) => a * b), 0.0).reshape(shape);
     }
     return out;
   }
 
-  /// 把输出按元素数归类并拍平成一维 double 列表。
-  Map<int, List<double>> _flattenByCount(Interpreter it, Map<int, Object> outputs) {
-    final res = <int, List<double>>{};
-    for (final e in outputs.entries) {
-      final flat = _flatten(e.value);
-      res.putIfAbsent(flat.length, () => flat);
+  List<double>? _firstWithCount(Map<int, Object> outputs, int n) {
+    final keys = outputs.keys.toList()..sort();
+    for (final k in keys) {
+      final f = _flatten(outputs[k]!);
+      if (f.length == n) return f;
     }
-    return res;
+    return null;
   }
 
-  /// 元素数为 1 的输出,按张量下标顺序。
-  List<double> _scalarOutputs(Interpreter it, Map<int, Object> outputs) {
+  List<double> _scalarOutputs(Map<int, Object> outputs) {
     final keys = outputs.keys.toList()..sort();
     return [
       for (final k in keys)
@@ -131,27 +207,18 @@ class TfliteLandmarkService implements LandmarkService {
     return [(o as num).toDouble()];
   }
 
-  /// 缩放到 size×size,归一化到 [0,1],NHWC。
-  List<List<List<List<double>>>> _toFloatTensor(img.Image src, int size) {
-    final resized = img.copyResize(src, width: size, height: size, interpolation: img.Interpolation.linear);
-    return [
-      List.generate(
-        size,
-        (y) => List.generate(size, (x) {
-          final p = resized.getPixel(x, y);
-          return [p.r / 255.0, p.g / 255.0, p.b / 255.0];
-        }),
-      ),
-    ];
-  }
-
-  /// 自检:加载两个模型、列出张量形状、用全零输入各跑一次。
-  ///
-  /// 用于确认 Windows 端的 TFLite 动态库和模型文件都能正常工作
-  /// (启动时设置环境变量 `MINGLI_SELFTEST=1` 会运行它并把结果写到临时目录)。
+  /// 自检:加载全部模型、列出张量形状、各空跑一次;检测模型另核对锚框数与输出是否吻合。
   static Future<String> selfTest() async {
     final buf = StringBuffer();
-    for (final (label, asset) in [('hand', handModelAsset), ('face', faceModelAsset)]) {
+    const models = <(String, String, SsdAnchorOptions?)>[
+      ('face-det-full', faceDetFullAsset, faceFullRangeOptions),
+      ('face-det-short', faceDetShortAsset, faceShortRangeOptions),
+      ('palm-det', palmDetAsset, palmOptions),
+      ('face-landmark', faceModelAsset, null),
+      ('hand-landmark', handModelAsset, null),
+    ];
+    final svc = TfliteLandmarkService();
+    for (final (label, asset, opts) in models) {
       buf.writeln('== $label: $asset');
       try {
         final it = await Interpreter.fromAsset(asset);
@@ -165,11 +232,16 @@ class TfliteLandmarkService implements LandmarkService {
         }
         final size = it.getInputTensor(0).shape[1];
         final input = [List.generate(size, (_) => List.generate(size, (_) => [0.0, 0.0, 0.0]))];
-        final svc = TfliteLandmarkService();
         final outputs = svc._allocateOutputs(it);
         final sw = Stopwatch()..start();
         it.runForMultipleInputs([input], outputs);
-        buf.writeln('  run ok in ${sw.elapsedMilliseconds} ms; scalars=${svc._scalarOutputs(it, outputs)}');
+        buf.writeln('  run ok in ${sw.elapsedMilliseconds} ms; scalars=${svc._scalarOutputs(outputs)}');
+        if (opts != null) {
+          final n = generateAnchors(opts).length;
+          final sizes = outputs.values.map((v) => _flatten(v).length).toList();
+          final ok = sizes.contains(n) && sizes.contains(n * opts.valuesPerBox);
+          buf.writeln('  anchors=$n outputs=$sizes ${ok ? 'MATCH' : 'MISMATCH!'}');
+        }
         it.close();
       } catch (e) {
         buf.writeln('  FAILED: $e');
@@ -179,8 +251,10 @@ class TfliteLandmarkService implements LandmarkService {
   }
 
   void dispose() {
-    _hand?.close();
-    _face?.close();
+    for (final it in _cache.values) {
+      it.close();
+    }
+    _cache.clear();
   }
 }
 

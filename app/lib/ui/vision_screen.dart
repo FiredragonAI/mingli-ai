@@ -33,6 +33,7 @@ class _VisionScreenState extends State<VisionScreen> {
   String? _error;
   PalmFeatures? _palm;
   FaceFeatures? _face;
+  String? _locNote;
 
   bool get isPalm => widget.mode == VisionMode.palm;
 
@@ -101,14 +102,15 @@ class _VisionScreenState extends State<VisionScreen> {
       }
       if (isPalm) {
         final lm = await _landmarks.detectHand(path);
-        if (lm == null) throw '未检测到手掌,请让手掌张开、掌心朝向镜头并占满画面';
+        if (lm == null) throw '未检测到手掌。请让手掌张开、掌心朝向镜头;全身照也可以,但手掌别被遮挡。';
         final lines = PalmLineExtractor().extract(decoded, lm);
         _palm = computePalmFeatures(lm, lines);
       } else {
         final k = await _landmarks.detectFace(path);
-        if (k == null) throw '未检测到正脸,请正对镜头、光线均匀';
+        if (k == null) throw '未检测到人脸。请确保脸部无遮挡、光线均匀;全身照可以,但侧脸或过小的脸识别不了。';
         _face = computeFaceFeatures(k);
       }
+      _locNote = _landmarks.lastLocationNote;
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -143,7 +145,7 @@ class _VisionScreenState extends State<VisionScreen> {
                       Icon(isPalm ? Icons.back_hand_outlined : Icons.face_outlined, size: 56, color: theme.colorScheme.primary),
                       const SizedBox(height: 8),
                       Text(
-                        isPalm ? '张开手掌,掌心朝向镜头,尽量占满画面,光线均匀无阴影。' : '正对镜头,露出额头与下巴,表情自然,光线均匀。',
+                        isPalm ? '张开手掌,掌心朝向镜头,光线均匀无阴影。全身照、生活照也可以,程序会自动定位手掌。' : '正对镜头,露出额头与下巴,表情自然,光线均匀。全身照、合照也可以,程序会自动定位人脸。',
                         textAlign: TextAlign.center,
                         style: theme.textTheme.bodyMedium,
                       ),
@@ -193,7 +195,7 @@ class _VisionScreenState extends State<VisionScreen> {
                     for (final e in _palm!.fingerRatios.entries) e.key: e.value.toStringAsFixed(2),
                     for (final l in _palm!.lines) l.name: '长 ${l.length.toStringAsFixed(2)} · 弯 ${l.curvature.toStringAsFixed(2)}${l.segments > 1 ? ' · 断 ${l.segments - 1}' : ''}',
                   },
-                  notes: _palm!.notes,
+                  notes: [if (_locNote != null) _locNote!, ..._palm!.notes],
                 ),
               ],
               if (_face != null) ...[
@@ -205,7 +207,7 @@ class _VisionScreenState extends State<VisionScreen> {
                     '五眼': _face!.fiveEyes.toStringAsFixed(1),
                     for (final e in _face!.palaces.entries) e.key: e.value,
                   },
-                  notes: _face!.notes,
+                  notes: [if (_locNote != null) _locNote!, ..._face!.notes],
                 ),
               ],
               if (features != null) ...[
