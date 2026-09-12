@@ -67,9 +67,14 @@ class AppState extends ChangeNotifier {
     biometricConsent = await _store.hasBiometricConsent();
     useLocalInterpretation = await _store.loadUseLocalInterpretation();
     final savedLang = await _store.loadLanguage();
-    language = savedLang == null
-        ? AppLanguage.fromSystem(PlatformDispatcher.instance.locale)
-        : AppLanguage.fromCode(savedLang);
+    if (savedLang != null) {
+      language = AppLanguage.fromCode(savedLang);
+    } else if (profiles.isNotEmpty) {
+      // 升级上来的老用户:之前只有简体,别因为系统语言突然变成英文
+      language = AppLanguage.zhHans;
+    } else {
+      language = AppLanguage.fromSystem(PlatformDispatcher.instance.locale);
+    }
     if (active != null) _recompute();
     notifyListeners();
     serverReachable = await api.ping();
