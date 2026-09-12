@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 
+import '../../l10n/app_language.dart';
+import '../../l10n/s2t.dart';
+import '../../l10n/strings.dart';
 import '../../services/api_client.dart';
 import '../../services/app_state.dart';
 
@@ -22,9 +25,9 @@ enum _Source {
 
 /// 通用 AI 解读卡片:点一下请求后端,展示 Markdown。
 ///
-/// [load] 拿到 ApiClient 后发请求,走云端解读。
-/// [localText] 是本机规则引擎的兜底:用户主动选离线时用它;
-/// 云端连不上或请求中途失败时也自动用它——用户永远不会面对一块空白或报错。
+/// [load] 拿到 ApiClient 后发请求,走云端解读(语言由 ApiClient 带给后端)。
+/// [localText] 是本机规则引擎的兜底:用户主动选离线时用它;云端连不上或请求
+/// 中途失败时也自动用它。调用方按当前语言给中文或英文版本;繁体由这里统一转换。
 class AiReadingCard extends StatefulWidget {
   const AiReadingCard({
     super.key,
@@ -47,9 +50,8 @@ class _AiReadingCardState extends State<AiReadingCard> {
   Interpretation? _result;
   Object? _error;
   bool _loading = false;
-
-  /// 本次结果是否因云端失败而临时改用本机生成。
   bool _fellBack = false;
+  AppLanguage? _resultLang;
 
   @override
   void initState() {
@@ -66,12 +68,15 @@ class _AiReadingCardState extends State<AiReadingCard> {
   }
 
   void _setLocal({required bool fallback}) {
+    final lang = context.read<AppState>().language;
     try {
-      final text = widget.localText!();
+      var text = widget.localText!();
+      if (lang == AppLanguage.zhHant) text = S2T.convert(text);
       setState(() {
         _result = Interpretation(text: text, sections: const {}, cached: false, model: 'local');
         _error = null;
         _fellBack = fallback;
+        _resultLang = lang;
       });
     } catch (e) {
       setState(() => _error = e);
@@ -100,11 +105,15 @@ class _AiReadingCardState extends State<AiReadingCard> {
     });
     try {
       final r = await widget.load(state.api);
-      if (mounted) setState(() => _result = r);
+      if (mounted) {
+        setState(() {
+          _result = r;
+          _resultLang = state.language;
+        });
+      }
     } catch (e) {
       if (!mounted) return;
-      // 网络不通或服务端故障:有本地兜底就直接用,不让用户面对一条报错。
-      // 4xx(限流、内容拒绝)是要告诉用户的,不吞。
+      // 网络不通或服务端故障:有本地兜底就直接用。4xx(限流、内容拒绝)要告诉用户,不吞。
       final transient = e is ApiException && (e.statusCode == 0 || e.statusCode >= 500);
       if (transient && widget.localText != null) {
         _setLocal(fallback: true);
@@ -120,24 +129,32 @@ class _AiReadingCardState extends State<AiReadingCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final source = _sourceOf(context.watch<AppState>());
+    final state = context.watch<AppState>();
+    final s = S.of(context);
+    final source = _sourceOf(state);
+
+    // 切换语言后,旧结果的语言对不上了,清掉让用户重新生成
+    if (_result != null && _resultLang != null && _resultLang != state.language) {
+      _result = null;
+      _resultLang = null;
+    }
 
     String? badge;
     if (_result != null) {
       if (_fellBack) {
-        badge = '云端暂不可用 · 本机生成';
+        badge = s.badgeFallback;
       } else if (_result!.model == 'local') {
-        badge = '本机生成 · 未联网';
+        badge = s.badgeLocal;
       } else if (_result!.cached) {
-        badge = '已缓存';
+        badge = s.badgeCached;
       }
     }
 
     final hint = switch (source) {
-      _Source.cloud => '点击下方按钮,由 AI 为您解读这份盘面。',
-      _Source.localForced => '点击下方按钮,由本机规则引擎生成解读(无需联网)。',
-      _Source.localFallback => '当前连不上云端,将由本机规则引擎生成解读;联网后点"重新生成"可获得 AI 版本。',
-      _Source.unavailable => '当前无法连接解读服务,请检查网络。',
+      _Source.cloud => s.hintCloud,
+      _Source.localForced => s.hintLocal,
+      _Source.localFallback => s.hintFallback,
+      _Source.unavailable => s.hintUnavailable,
     };
 
     return Card(
@@ -152,7 +169,7 @@ class _AiReadingCardState extends State<AiReadingCard> {
                 const SizedBox(width: 8),
                 Expanded(child: Text(widget.title, style: theme.textTheme.titleMedium)),
                 if (badge != null)
-                  Text(badge, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline)),
+                  Flexible(child: Text(badge, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline), textAlign: TextAlign.end)),
               ],
             ),
             const SizedBox(height: 12),
@@ -167,13 +184,10 @@ class _AiReadingCardState extends State<AiReadingCard> {
                 ),
               )
             else if (_loading)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Center(child: CircularProgressIndicator()),
-              )
+              const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: Center(child: CircularProgressIndicator()))
             else if (_error != null)
               Text(
-                _error is ApiException ? (_error as ApiException).message : '解读失败:$_error',
+                _error is ApiException ? (_error as ApiException).message : s.failed('$_error'),
                 style: TextStyle(color: theme.colorScheme.error),
               )
             else
@@ -183,7 +197,7 @@ class _AiReadingCardState extends State<AiReadingCard> {
               OutlinedButton.icon(
                 onPressed: source == _Source.unavailable ? null : _run,
                 icon: Icon(_result == null ? Icons.play_arrow : Icons.refresh),
-                label: Text(_result == null ? '开始解读' : '重新生成'),
+                label: Text(_result == null ? s.generate : s.regenerate),
               ),
           ],
         ),

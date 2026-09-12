@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'core/naming/stroke_dictionary.dart';
+import 'l10n/s2t.dart';
 import 'services/app_state.dart';
 import 'services/storage/profile_store.dart';
 import 'services/vision/tflite_landmark_service.dart';
@@ -32,8 +33,12 @@ Future<void> main() async {
 
   // 康熙笔画字典:有文件就加载,没有就用内置兜底
   try {
-    final json = await rootBundle.loadString('assets/data/kangxi_strokes.json');
-    StrokeDictionary.loadFromJson(json);
+    StrokeDictionary.loadFromJson(await rootBundle.loadString('assets/data/kangxi_strokes.json'));
+  } catch (_) {}
+
+  // 简繁字表:没有也能跑(只做词级修正),繁体界面会残留部分简体字
+  try {
+    S2T.loadFromJson(await rootBundle.loadString('assets/data/s2t.json'));
   } catch (_) {}
 
   final state = AppState(ProfileStore());
@@ -52,13 +57,14 @@ class MingliApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<AppState>().language;
     return MaterialApp(
-      title: '命理师 AI',
+      title: 'Mingli AI',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(Brightness.light),
       darkTheme: buildTheme(Brightness.dark),
-      locale: const Locale('zh'),
-      supportedLocales: const [Locale('zh'), Locale('en')],
+      locale: lang.locale,
+      supportedLocales: const [Locale('zh', 'CN'), Locale('zh', 'TW'), Locale('en')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       home: const HomeScreen(),
     );

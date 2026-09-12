@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 
 import '../core/fortune/daily_fortune.dart';
 import '../core/interpret/local_interpreter.dart';
+import '../core/interpret/local_interpreter_en.dart';
+import '../l10n/glossary.dart';
+import '../l10n/strings.dart';
 import '../services/app_state.dart';
 import 'widgets/ai_reading_card.dart';
 import 'widgets/disclaimer.dart';
@@ -14,13 +17,14 @@ class FortuneScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
+    final s = S.of(context);
     final chart = state.chart!;
     final today = state.today ?? todayFortune(chart);
     final week = fortuneRange(chart, days: 7);
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('今日运势')),
+      appBar: AppBar(title: Text(s.todayFortune)),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
@@ -32,19 +36,20 @@ class FortuneScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      Text('${today.year} 年 ${today.month} 月 ${today.day} 日 · ${today.dayPillar.name}日', style: theme.textTheme.bodyMedium),
+                      Text(s.fortuneDate(today.year, today.month, today.day, s.en ? stemBranchEn(today.dayPillar) : today.dayPillar.name),
+                          style: theme.textTheme.bodyMedium),
                       const SizedBox(height: 4),
-                      Text('今日${today.theme.label}(${today.theme.group})', style: theme.textTheme.titleMedium),
+                      Text(s.todayTheme(s.term(today.theme.label), s.term(today.theme.group)), style: theme.textTheme.titleMedium),
                       const SizedBox(height: 16),
-                      _ScoreRing(score: today.overall),
+                      _ScoreRing(score: today.overall, label: s.overall),
                       const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _MiniScore('事业', today.career),
-                          _MiniScore('财运', today.wealth),
-                          _MiniScore('感情', today.love),
-                          _MiniScore('健康', today.health),
+                          _MiniScore(s.career, today.career),
+                          _MiniScore(s.wealth, today.wealth),
+                          _MiniScore(s.love, today.love),
+                          _MiniScore(s.health, today.health),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -52,10 +57,10 @@ class FortuneScreen extends StatelessWidget {
                         spacing: 8,
                         runSpacing: 6,
                         children: [
-                          Chip(avatar: const Icon(Icons.palette_outlined, size: 16), label: Text('幸运色 ${today.luckyColor}')),
-                          Chip(avatar: const Icon(Icons.pin_outlined, size: 16), label: Text('幸运数 ${today.luckyNumbers.join('、')}')),
-                          Chip(avatar: const Icon(Icons.explore_outlined, size: 16), label: Text('吉方 ${today.luckyDirection}')),
-                          for (final k in today.keywords) Chip(label: Text(k)),
+                          Chip(avatar: const Icon(Icons.palette_outlined, size: 16), label: Text('${s.luckyColor} ${s.term(today.luckyColor)}')),
+                          Chip(avatar: const Icon(Icons.pin_outlined, size: 16), label: Text('${s.luckyNumbers} ${today.luckyNumbers.join(s.en ? ', ' : '、')}')),
+                          Chip(avatar: const Icon(Icons.explore_outlined, size: 16), label: Text('${s.luckyDirection} ${s.term(today.luckyDirection)}')),
+                          for (final k in today.keywords) Chip(label: Text(s.text(k))),
                         ],
                       ),
                     ],
@@ -68,7 +73,7 @@ class FortuneScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('未来七天', style: theme.textTheme.titleMedium),
+                      Text(s.nextSevenDays, style: theme.textTheme.titleMedium),
                       const SizedBox(height: 12),
                       SizedBox(
                         height: 160,
@@ -116,21 +121,18 @@ class FortuneScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('影响因素', style: theme.textTheme.titleMedium),
+                      Text(s.factors, style: theme.textTheme.titleMedium),
                       const SizedBox(height: 8),
                       for (final f in today.factors)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Text('· $f', style: theme.textTheme.bodySmall),
-                        ),
+                        Padding(padding: const EdgeInsets.only(bottom: 4), child: Text('· ${s.text(f)}', style: theme.textTheme.bodySmall)),
                     ],
                   ),
                 ),
               ),
               AiReadingCard(
-                title: 'AI 今日指引',
+                title: s.aiDaily,
                 load: (api) => api.interpretDaily(chart.toJson(), today.toJson()),
-                localText: () => localInterpretDaily(chart, today),
+                localText: () => s.en ? enInterpretDaily(chart, today) : localInterpretDaily(chart, today),
               ),
               const Disclaimer(),
             ],
@@ -142,8 +144,9 @@ class FortuneScreen extends StatelessWidget {
 }
 
 class _ScoreRing extends StatelessWidget {
-  const _ScoreRing({required this.score});
+  const _ScoreRing({required this.score, required this.label});
   final int score;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +169,7 @@ class _ScoreRing extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('$score', style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700)),
-              Text('综合', style: theme.textTheme.labelSmall),
+              Text(label, style: theme.textTheme.labelSmall),
             ],
           ),
         ],

@@ -51,6 +51,7 @@ class ApiClient {
     required this.baseUrl,
     required this.deviceId,
     this.appToken = '',
+    this.language = 'zh-Hans',
     http.Client? client,
     this.timeout = const Duration(seconds: 60),
   }) : _client = client ?? http.Client();
@@ -60,6 +61,9 @@ class ApiClient {
 
   /// 与服务端 APP_TOKEN 一致的共享口令;空则不发。
   final String appToken;
+
+  /// 希望模型用哪种语言写解读:zh-Hans / zh-Hant / en。
+  final String language;
   final http.Client _client;
   final Duration timeout;
 
@@ -79,7 +83,7 @@ class ApiClient {
     final http.Response res;
     try {
       res = await _client
-          .post(uri, headers: _headers, body: jsonEncode(body))
+          .post(uri, headers: _headers, body: jsonEncode({...body, 'language': language}))
           .timeout(timeout);
     } on SocketException catch (e) {
       throw ApiException(0, '网络不可用:${e.message}');

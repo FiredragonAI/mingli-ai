@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/strings.dart';
 import '../services/app_state.dart';
 import 'almanac_screen.dart';
 import 'birth_input_screen.dart';
@@ -21,11 +22,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
+    final s = S.of(context);
     if (state.active == null) {
       return const BirthInputScreen(firstRun: true);
     }
 
-    final pages = const [ChartScreen(), FortuneScreen(), AlmanacScreen(), MoreScreen()];
+    const pages = [ChartScreen(), FortuneScreen(), AlmanacScreen(), MoreScreen()];
     final wide = MediaQuery.sizeOf(context).width >= 800;
 
     if (wide) {
@@ -41,11 +43,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: EdgeInsets.symmetric(vertical: 16),
                 child: Text('命', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700)),
               ),
-              destinations: const [
-                NavigationRailDestination(icon: Icon(Icons.grid_view_outlined), selectedIcon: Icon(Icons.grid_view), label: Text('命盘')),
-                NavigationRailDestination(icon: Icon(Icons.wb_sunny_outlined), selectedIcon: Icon(Icons.wb_sunny), label: Text('运势')),
-                NavigationRailDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: Text('黄历')),
-                NavigationRailDestination(icon: Icon(Icons.more_horiz), selectedIcon: Icon(Icons.more_horiz), label: Text('更多')),
+              destinations: [
+                NavigationRailDestination(icon: const Icon(Icons.grid_view_outlined), selectedIcon: const Icon(Icons.grid_view), label: Text(s.navChart)),
+                NavigationRailDestination(icon: const Icon(Icons.wb_sunny_outlined), selectedIcon: const Icon(Icons.wb_sunny), label: Text(s.navFortune)),
+                NavigationRailDestination(icon: const Icon(Icons.calendar_month_outlined), selectedIcon: const Icon(Icons.calendar_month), label: Text(s.navAlmanac)),
+                NavigationRailDestination(icon: const Icon(Icons.more_horiz), selectedIcon: const Icon(Icons.more_horiz), label: Text(s.navMore)),
               ],
             ),
             const VerticalDivider(width: 1),
@@ -60,11 +62,11 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.grid_view_outlined), selectedIcon: Icon(Icons.grid_view), label: '命盘'),
-          NavigationDestination(icon: Icon(Icons.wb_sunny_outlined), selectedIcon: Icon(Icons.wb_sunny), label: '运势'),
-          NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: '黄历'),
-          NavigationDestination(icon: Icon(Icons.more_horiz), label: '更多'),
+        destinations: [
+          NavigationDestination(icon: const Icon(Icons.grid_view_outlined), selectedIcon: const Icon(Icons.grid_view), label: s.navChart),
+          NavigationDestination(icon: const Icon(Icons.wb_sunny_outlined), selectedIcon: const Icon(Icons.wb_sunny), label: s.navFortune),
+          NavigationDestination(icon: const Icon(Icons.calendar_month_outlined), selectedIcon: const Icon(Icons.calendar_month), label: s.navAlmanac),
+          NavigationDestination(icon: const Icon(Icons.more_horiz), label: s.navMore),
         ],
       ),
     );

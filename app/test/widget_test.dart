@@ -14,7 +14,8 @@ import 'package:mingli_ai/services/storage/profile_store.dart';
 
 void main() {
   testWidgets('首次启动无档案时显示出生信息填写页', (WidgetTester tester) async {
-    SharedPreferences.setMockInitialValues({});
+    // 测试环境系统语言是 en_US,显式指定简体以校验中文文案
+    SharedPreferences.setMockInitialValues({'settings.language': 'zh-Hans'});
     final state = AppState(ProfileStore());
     await state.init();
 

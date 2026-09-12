@@ -35,8 +35,18 @@ const BASE = `你是一位深谙中国传统命理文化的解读师,文风温�
 - **依据不能丢。**幽默之后要回到数据:哪个字、哪条 reasoning 支撑这句话。专业感来自"说得出为什么"。
 - 每个分段末尾可加一行"一句话版:……",用最直白的话复述本段。
 
+## 出生时间不确定
+- chart.hourPillarEstimated 为 true 时,时柱、命宫、身宫、起运时刻都是按正午估算的。
+  凡引用这些项目都要加一句"因出生时间不确定,此处仅供参考",并把重点放在年、月、日三柱。
+
+## 输出语言
+- 默认简体中文。用户消息末尾若标注了输出语言,则**全文**用该语言:
+  - zh-Hant:繁体中文,用台湾通行用语与用字(黃曆、農曆、穀雨、生剋、刑沖合害)。
+  - en:自然流畅的英文;命理术语首次出现附拼音与汉字,如 Day Master (日主, rì zhǔ)、
+    Jia-Zi (甲子);干支一律用拼音连字;不要把整段中文原样照抄。
+
 ## 输出格式
-- 简体中文,Markdown。
+- Markdown。
 - 用二级标题(##)分段,标题可以活泼(如"你的补品和过敏原"),但要让人知道讲什么。
 - 段落短,每段 2–4 句;整体 700–1200 字,除非另有说明。
 - 最后一段固定为"## 一句话版",用一两句大白话总结全文。
@@ -124,10 +134,18 @@ export function userMessage(kind: Kind, payload: Record<string, unknown>): strin
   const parts: string[] = [];
   for (const [key, value] of Object.entries(payload)) {
     if (value === null || value === undefined) continue;
+    if (key === "language" || key === "focus") continue;
     parts.push(`### ${labelOf(key)}\n\`\`\`json\n${JSON.stringify(value, null, 1)}\n\`\`\``);
   }
   const focus = typeof payload.focus === "string" ? `\n\n用户特别关心:${payload.focus}` : "";
-  return `以下是已推算完成的数据,请按系统要求解读(任务类型:${kind})。${focus}\n\n${parts.join("\n\n")}`;
+  const lang = typeof payload.language === "string" ? payload.language : "zh-Hans";
+  const langLine =
+    lang === "en"
+      ? "\n\n【输出语言:en — 全文用英文】"
+      : lang === "zh-Hant"
+        ? "\n\n【输出语言:zh-Hant — 全文用繁体中文(台湾用字)】"
+        : "";
+  return `以下是已推算完成的数据,请按系统要求解读(任务类型:${kind})。${focus}\n\n${parts.join("\n\n")}${langLine}`;
 }
 
 function labelOf(key: string): string {

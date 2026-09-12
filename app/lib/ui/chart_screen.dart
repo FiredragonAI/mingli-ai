@@ -4,8 +4,11 @@ import 'package:provider/provider.dart';
 import '../core/bazi/bazi_chart.dart';
 import '../core/bazi/shen_sha.dart';
 import '../core/bazi/ten_gods.dart';
-import '../core/calendar/sexagenary.dart';
 import '../core/interpret/local_interpreter.dart';
+import '../core/interpret/local_interpreter_en.dart';
+import '../data/cities.dart';
+import '../l10n/glossary.dart';
+import '../l10n/strings.dart';
 import '../services/app_state.dart';
 import 'birth_input_screen.dart';
 import 'theme.dart';
@@ -21,15 +24,16 @@ class ChartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
+    final s = S.of(context);
     final chart = state.chart!;
     final input = chart.input;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(input.name.isEmpty ? '${input.gender.chartLabel} · 八字命盘' : '${input.name} · ${input.gender.chartLabel}'),
+        title: Text(input.name.isEmpty ? '${s.term(input.gender.chartLabel)} · ${s.chartTitle}' : '${input.name} · ${s.term(input.gender.chartLabel)}'),
         actions: [
           IconButton(
-            tooltip: '编辑出生信息',
+            tooltip: s.editBirth,
             icon: const Icon(Icons.edit_outlined),
             onPressed: () => Navigator.push(
               context,
@@ -51,9 +55,9 @@ class ChartScreen extends StatelessWidget {
               _ShenShaCard(chart: chart),
               _LuckCard(chart: chart),
               AiReadingCard(
-                title: 'AI 命理解读',
+                title: s.aiBazi,
                 load: (api) => api.interpretBazi(chart.toJson()),
-                localText: () => localInterpretBazi(chart),
+                localText: () => s.en ? enInterpretBazi(chart) : localInterpretBazi(chart),
               ),
               const Disclaimer(),
             ],
@@ -71,42 +75,49 @@ class _HeaderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = S.of(context);
     final i = chart.input;
     final clock = chart.trueSolar.trueSolarClock;
     final western = zodiacOfChart(chart).sun;
+    final place = s.en ? cityEnglish(i.placeName) : s.text(i.placeName);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(chart.summaryLine, style: theme.textTheme.headlineSmall?.copyWith(letterSpacing: 2, fontWeight: FontWeight.w700)),
+            Text(s.en ? summaryEn(chart) : chart.summaryLine,
+                style: theme.textTheme.headlineSmall?.copyWith(letterSpacing: s.en ? 0 : 2, fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
-            Text('公历 ${i.year}-${_p(i.month)}-${_p(i.day)} ${_p(i.hour)}:${_p(i.minute)} · ${i.placeName.isEmpty ? '经度 ${i.longitude}' : i.placeName}',
-                style: theme.textTheme.bodySmall),
-            Text(chart.lunar.toString(), style: theme.textTheme.bodySmall),
+            Text('${s.gregorian} ${i.year}-${_p(i.month)}-${_p(i.day)} ${_p(i.hour)}:${_p(i.minute)} · $place', style: theme.textTheme.bodySmall),
+            Text(s.en ? lunarEn(chart.lunar) : s.text(chart.lunar.toString()), style: theme.textTheme.bodySmall),
             if (i.useTrueSolarTime)
               Text(
-                '真太阳时 ${_p(clock.hour)}:${_p(clock.minute)}'
-                '(经度 ${chart.trueSolar.longitudeCorrectionMinutes.toStringAsFixed(0)} 分,均时差 ${chart.trueSolar.equationOfTimeMinutes.toStringAsFixed(1)} 分)',
+                s.trueSolar('${_p(clock.hour)}:${_p(clock.minute)}', chart.trueSolar.longitudeCorrectionMinutes.toStringAsFixed(0),
+                    chart.trueSolar.equationOfTimeMinutes.toStringAsFixed(1)),
                 style: theme.textTheme.bodySmall,
               ),
             Text(
-              '${chart.previousTerm.name}后 ${(chart.effectiveJdUt - chart.previousTerm.jdUt).toStringAsFixed(1)} 天,'
-              '距${chart.nextTerm.name} ${(chart.nextTerm.jdUt - chart.effectiveJdUt).toStringAsFixed(1)} 天',
+              s.termDistance(s.term(chart.previousTerm.name), (chart.effectiveJdUt - chart.previousTerm.jdUt).toStringAsFixed(1),
+                  s.term(chart.nextTerm.name), (chart.nextTerm.jdUt - chart.effectiveJdUt).toStringAsFixed(1)),
               style: theme.textTheme.bodySmall,
             ),
+            if (i.timeMode.isEstimated)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(s.hourEstimated, style: theme.textTheme.bodySmall?.copyWith(color: AppColors.gold)),
+              ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 6,
               children: [
-                Chip(label: Text('生肖 ${chart.zodiac}')),
-                Chip(label: Text('${western.symbol} ${western.name}')),
-                Chip(label: Text('日主 ${chart.dayMasterName}${chart.dayMaster.label}')),
-                Chip(label: Text('胎元 ${chart.taiYuan.name}')),
-                Chip(label: Text('命宫 ${chart.mingGong.name}')),
-                Chip(label: Text('身宫 ${chart.shenGong.name}')),
+                Chip(label: Text('${s.zodiacChip} ${s.animal(chart.yearPillar.stemBranch.branch)}')),
+                Chip(label: Text('${western.symbol} ${s.en ? western.english : s.text(western.name)}')),
+                Chip(label: Text('${s.dayMasterChip} ${s.en ? stemEn(chart.dayStem) : '${chart.dayMasterName}${s.term(chart.dayMaster.label)}'}')),
+                Chip(label: Text('${s.taiYuan} ${s.en ? stemBranchEn(chart.taiYuan) : chart.taiYuan.name}')),
+                Chip(label: Text('${s.mingGong} ${s.en ? stemBranchEn(chart.mingGong) : chart.mingGong.name}')),
+                Chip(label: Text('${s.shenGong} ${s.en ? stemBranchEn(chart.shenGong) : chart.shenGong.name}')),
               ],
             ),
           ],
@@ -125,6 +136,7 @@ class _InteractionsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = S.of(context);
     if (chart.interactions.isEmpty) return const SizedBox.shrink();
     return Card(
       child: Padding(
@@ -132,7 +144,7 @@ class _InteractionsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('刑冲合害', style: theme.textTheme.titleMedium),
+            Text(s.interactions, style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -141,7 +153,7 @@ class _InteractionsCard extends StatelessWidget {
                 for (final it in chart.interactions)
                   Chip(
                     avatar: Icon(it.kind.isHarmonious ? Icons.favorite_outline : Icons.flash_on_outlined, size: 16),
-                    label: Text(it.description),
+                    label: Text(s.text(it.description)),
                     backgroundColor: it.kind.isHarmonious
                         ? AppColors.jade.withValues(alpha: 0.12)
                         : theme.colorScheme.errorContainer.withValues(alpha: 0.5),
@@ -162,34 +174,35 @@ class _ShenShaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = S.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('神煞', style: theme.textTheme.titleMedium),
+            Text(s.shenSha, style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
-            if (chart.shenSha.isEmpty) Text('无显著神煞', style: theme.textTheme.bodySmall),
-            for (final s in chart.shenSha)
+            if (chart.shenSha.isEmpty) Text(s.noShenSha, style: theme.textTheme.bodySmall),
+            for (final sh in chart.shenSha)
               ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
                 leading: Icon(
-                  switch (s.nature) {
+                  switch (sh.nature) {
                     ShenShaNature.auspicious => Icons.star_outline,
                     ShenShaNature.inauspicious => Icons.warning_amber_outlined,
                     ShenShaNature.neutral => Icons.circle_outlined,
                   },
                   size: 18,
-                  color: switch (s.nature) {
+                  color: switch (sh.nature) {
                     ShenShaNature.auspicious => AppColors.gold,
                     ShenShaNature.inauspicious => theme.colorScheme.error,
                     ShenShaNature.neutral => theme.colorScheme.outline,
                   },
                 ),
-                title: Text('${s.name} · ${s.positions.map((p) => pillarNames[p]).join()}柱'),
-                subtitle: Text('${s.meaning}\n${s.basis}', style: theme.textTheme.bodySmall),
+                title: Text('${s.term(sh.name)} · ${sh.positions.map((p) => s.pillar(p)).join(s.en ? '/' : '')}${s.pillarSuffix}'),
+                subtitle: Text('${s.text(sh.meaning)}\n${s.text(sh.basis)}', style: theme.textTheme.bodySmall),
               ),
           ],
         ),
@@ -205,17 +218,23 @@ class _LuckCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = S.of(context);
     final luck = chart.luck;
     final nowYear = DateTime.now().year;
+    final desc = s.en
+        ? 'Starts ${luck.startYears}y ${luck.startMonths}m ${luck.startDays}d after birth (${s.term(luck.direction)}); first cycle at about age ${luck.startYears + 1}'
+        : s.text(luck.startDescription);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('大运', style: theme.textTheme.titleMedium),
+            Text(s.luckCycles, style: theme.textTheme.titleMedium),
             const SizedBox(height: 4),
-            Text(luck.startDescription, style: theme.textTheme.bodySmall),
+            Text(desc, style: theme.textTheme.bodySmall),
+            if (chart.input.timeMode.isEstimated)
+              Text(s.hourEstimated, style: theme.textTheme.bodySmall?.copyWith(color: AppColors.gold)),
             const SizedBox(height: 12),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -223,7 +242,7 @@ class _LuckCard extends StatelessWidget {
                 children: [
                   for (final c in luck.cycles)
                     Container(
-                      width: 72,
+                      width: s.en ? 84 : 72,
                       margin: const EdgeInsets.only(right: 8),
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
@@ -236,9 +255,10 @@ class _LuckCard extends StatelessWidget {
                         children: [
                           Text(c.pillar.stemName, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: elementColor[c.pillar.stemElement.label])),
                           Text(c.pillar.branchName, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: elementColor[c.pillar.branchElement.label])),
+                          if (s.en) Text(stemBranchEn(c.pillar), style: theme.textTheme.labelSmall),
                           const SizedBox(height: 4),
-                          Text(tenGodOf(chart.dayStem, c.pillar.stem).label, style: theme.textTheme.labelSmall),
-                          Text('${c.startNominalAge}岁', style: theme.textTheme.labelSmall),
+                          Text(s.term(tenGodOf(chart.dayStem, c.pillar.stem).label), style: theme.textTheme.labelSmall, textAlign: TextAlign.center),
+                          Text('${c.startNominalAge}${s.age}', style: theme.textTheme.labelSmall),
                           Text('${c.startYear}', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline)),
                         ],
                       ),

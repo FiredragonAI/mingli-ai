@@ -37,6 +37,20 @@ enum ZiHourMode {
   final String label;
 }
 
+/// 用户对出生时间的把握程度。
+enum BirthTimeMode {
+  /// 知道几点几分。
+  exact,
+
+  /// 只知道时辰(子时、丑时……),按该时辰中点排盘。
+  shichen,
+
+  /// 完全不确定,按正午排盘;时柱与依赖时柱的结论都只是估算。
+  unknown;
+
+  bool get isEstimated => this == unknown;
+}
+
 /// 出生信息。所有时间为**民用时**(用户手表上的时间)。
 class BirthInput {
   const BirthInput({
@@ -52,6 +66,7 @@ class BirthInput {
     this.timezoneHours = chinaTimezoneHours,
     this.useTrueSolarTime = true,
     this.ziHourMode = ZiHourMode.nextDay,
+    this.timeMode = BirthTimeMode.exact,
     this.name = '',
   });
 
@@ -61,6 +76,10 @@ class BirthInput {
   final int hour;
   final int minute;
   final Gender gender;
+  final BirthTimeMode timeMode;
+
+  /// 出生时辰(地支序号 0 子 … 11 亥)。
+  int get hourBranch => hourBranchOf(hour + minute / 60.0);
 
   /// 出生地经度,东经为正。
   final double longitude;
@@ -86,6 +105,7 @@ class BirthInput {
         'timezoneHours': timezoneHours,
         'useTrueSolarTime': useTrueSolarTime,
         'ziHourMode': ziHourMode.name,
+        'timeMode': timeMode.name,
         'name': name,
       };
 }
@@ -241,6 +261,8 @@ class BaziChart {
       'input': input.toJson(),
       'gender': input.gender.chartLabel,
       'summary': summaryLine,
+      // 出生时间不确定时,时柱、命宫、身宫、起运时刻都是估算——模型解读时必须说明
+      'hourPillarEstimated': input.timeMode.isEstimated,
       'dayMaster': {
         'stem': dayMasterName,
         'element': dayMaster.label,

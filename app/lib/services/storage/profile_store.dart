@@ -18,6 +18,7 @@ class ProfileStore {
   static const _kDeviceId = 'settings.deviceId';
   static const _kConsent = 'settings.consent.v1';
   static const _kLocalInterpretation = 'settings.localInterpretation';
+  static const _kLanguage = 'settings.language';
 
   Future<List<BirthInput>> loadProfiles() async {
     final sp = await SharedPreferences.getInstance();
@@ -70,6 +71,11 @@ class ProfileStore {
   Future<void> setUseLocalInterpretation(bool v) async =>
       (await SharedPreferences.getInstance()).setBool(_kLocalInterpretation, v);
 
+  /// 界面语言代号;未设置过返回 null(由调用方按系统语言决定)。
+  Future<String?> loadLanguage() async => (await SharedPreferences.getInstance()).getString(_kLanguage);
+
+  Future<void> saveLanguage(String code) async => (await SharedPreferences.getInstance()).setString(_kLanguage, code);
+
   static BirthInput _fromJson(Map<String, dynamic> j) => BirthInput(
         year: j['year'] as int,
         month: j['month'] as int,
@@ -83,6 +89,7 @@ class ProfileStore {
         timezoneHours: (j['timezoneHours'] as num?)?.toDouble() ?? chinaTimezoneHours,
         useTrueSolarTime: j['useTrueSolarTime'] as bool? ?? true,
         ziHourMode: ZiHourMode.values.byName(j['ziHourMode'] as String? ?? 'nextDay'),
+        timeMode: BirthTimeMode.values.byName(j['timeMode'] as String? ?? 'exact'),
         name: j['name'] as String? ?? '',
       );
 }

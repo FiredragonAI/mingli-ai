@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' hide Element;
 
 import '../../core/bazi/element_strength.dart';
 import '../../core/bazi/five_elements.dart';
+import '../../l10n/strings.dart';
 import '../theme.dart';
 
 /// 五行占比横条 + 强弱、喜忌。
@@ -12,20 +13,22 @@ class ElementBars extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = S.of(context);
+    String els(List<Element> list) => list.map((e) => s.term(e.label)).join(s.en ? ', ' : '');
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('五行力量', style: theme.textTheme.titleMedium),
+            Text(s.elementStrength, style: theme.textTheme.titleMedium),
             const SizedBox(height: 12),
             for (final e in Element.values) ...[
               Row(
                 children: [
                   SizedBox(
-                    width: 24,
-                    child: Text(e.label, style: TextStyle(color: elementColor[e.label], fontWeight: FontWeight.w700)),
+                    width: s.en ? 52 : 24,
+                    child: Text(s.term(e.label), style: TextStyle(color: elementColor[e.label], fontWeight: FontWeight.w700)),
                   ),
                   Expanded(
                     child: ClipRRect(
@@ -51,27 +54,21 @@ class ElementBars extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                Chip(label: Text('日主 ${analysis.dayMaster.label} · ${analysis.strength.label}')),
-                Chip(
-                  avatar: const Icon(Icons.thumb_up_alt_outlined, size: 16),
-                  label: Text('喜 ${analysis.favorable.map((e) => e.label).join('')}'),
-                ),
-                Chip(
-                  avatar: const Icon(Icons.block, size: 16),
-                  label: Text('忌 ${analysis.unfavorable.map((e) => e.label).join('')}'),
-                ),
-                if (analysis.missing.isNotEmpty) Chip(label: Text('缺 ${analysis.missing.map((e) => e.label).join('')}')),
+                Chip(label: Text('${s.dayMasterChip} ${s.term(analysis.dayMaster.label)} · ${s.term(analysis.strength.label)}')),
+                Chip(avatar: const Icon(Icons.thumb_up_alt_outlined, size: 16), label: Text('${s.favorable} ${els(analysis.favorable)}')),
+                Chip(avatar: const Icon(Icons.block, size: 16), label: Text('${s.unfavorable} ${els(analysis.unfavorable)}')),
+                if (analysis.missing.isNotEmpty) Chip(label: Text('${s.missing} ${els(analysis.missing)}')),
               ],
             ),
             const SizedBox(height: 8),
             ExpansionTile(
               tilePadding: EdgeInsets.zero,
-              title: Text('推断依据', style: theme.textTheme.bodyMedium),
+              title: Text(s.reasoning, style: theme.textTheme.bodyMedium),
               children: [
                 for (final r in analysis.reasoning)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),
-                    child: Text('· $r', style: theme.textTheme.bodySmall),
+                    child: Text('· ${s.text(r)}', style: theme.textTheme.bodySmall),
                   ),
               ],
             ),

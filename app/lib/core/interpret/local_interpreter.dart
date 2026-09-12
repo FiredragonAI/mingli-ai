@@ -53,6 +53,10 @@ String localInterpretBazi(BaziChart c) {
   buf.writeln(_quote(strength.fun));
   buf.writeln('所以一句话人设:**${persona.image} × ${e.strength.label}** —— '
       '${persona.traits.join('、')},${_strengthTag(e)}。\n');
+  if (c.input.timeMode.isEstimated) {
+    buf.writeln(_quote('出生时间不确定:时柱、命宫、身宫和起运时刻都是按正午估算的,'
+        '下面凡是牵涉这几项的结论都只当参考,重点看年、月、日三柱。'));
+  }
 
   // ---- 四柱 ----
   buf.writeln(_h('四根柱子各管什么'));

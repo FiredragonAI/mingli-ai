@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/interpret/local_interpreter.dart';
+import '../core/interpret/local_interpreter_en.dart';
 import '../core/naming/name_analysis.dart';
 import '../core/naming/numerology.dart';
+import '../l10n/strings.dart';
 import '../services/app_state.dart';
 import 'theme.dart';
 import 'widgets/ai_reading_card.dart';
@@ -26,14 +28,14 @@ class _NamingScreenState extends State<NamingScreen> {
     final name = context.read<AppState>().active?.name ?? '';
     if (name.length >= 2) {
       _ctrl.text = name;
-      _analyze();
+      _analyze(silent: true);
     }
   }
 
-  void _analyze() {
+  void _analyze({bool silent = false}) {
     final name = _ctrl.text.trim();
     if (name.length < 2 || name.length > 6) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请输入 2–6 个汉字的姓名')));
+      if (!silent) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(S(context.read<AppState>().language).nameLengthError)));
       return;
     }
     setState(() => _result = analyzeName(name, chart: context.read<AppState>().chart));
@@ -42,10 +44,11 @@ class _NamingScreenState extends State<NamingScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = S.of(context);
     final r = _result;
     final chart = context.watch<AppState>().chart;
     return Scaffold(
-      appBar: AppBar(title: const Text('姓名测试')),
+      appBar: AppBar(title: Text(s.naming)),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
@@ -57,12 +60,12 @@ class _NamingScreenState extends State<NamingScreen> {
                   Expanded(
                     child: TextField(
                       controller: _ctrl,
-                      decoration: const InputDecoration(labelText: '姓名', hintText: '如:李思晨'),
+                      decoration: InputDecoration(labelText: s.name, hintText: s.nameHint),
                       onSubmitted: (_) => _analyze(),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  FilledButton(onPressed: _analyze, child: const Text('测算')),
+                  FilledButton(onPressed: _analyze, child: Text(s.analyze)),
                 ],
               ),
               if (r != null) ...[
@@ -77,11 +80,11 @@ class _NamingScreenState extends State<NamingScreen> {
                         Text(r.strokes.join(' · '), style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
                         const SizedBox(height: 8),
                         Text('${r.overallScore}', style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w700, color: theme.colorScheme.primary)),
-                        Text(r.summary, style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
+                        Text(s.text(r.summary), style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
                         if (r.unknownChars.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 8),
-                            child: Text('提示:完整康熙笔画字典未加载,生僻字按 0 画计', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error)),
+                            child: Text(s.unknownCharsHint, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error)),
                           ),
                       ],
                     ),
@@ -99,8 +102,8 @@ class _NamingScreenState extends State<NamingScreen> {
                             foregroundColor: Colors.white,
                             child: Text('${g.number}'),
                           ),
-                          title: Text('${g.name} · ${g.meaning.title} · ${g.meaning.luck.label}'),
-                          subtitle: Text('${g.meaning.text}\n${g.domain}', style: theme.textTheme.bodySmall),
+                          title: Text('${s.term(g.name)} · ${s.text(g.meaning.title)} · ${s.term(g.meaning.luck.label)}'),
+                          subtitle: Text('${s.text(g.meaning.text)}\n${s.text(g.domain)}', style: theme.textTheme.bodySmall),
                           trailing: Icon(
                             switch (g.meaning.luck) {
                               Luck.auspicious => Icons.check_circle_outline,
@@ -125,17 +128,17 @@ class _NamingScreenState extends State<NamingScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('三才 ${r.sanCaiText} · ${r.sanCaiScore} 分', style: theme.textTheme.titleSmall),
-                        Text(r.sanCaiComment, style: theme.textTheme.bodySmall),
+                        Text(s.sanCai(s.text(r.sanCaiText), r.sanCaiScore), style: theme.textTheme.titleSmall),
+                        Text(s.text(r.sanCaiComment), style: theme.textTheme.bodySmall),
                         if (r.elementNotes.isNotEmpty) ...[
                           const Divider(),
-                          Text('八字补益', style: theme.textTheme.titleSmall),
-                          for (final n in r.elementNotes) Text('· $n', style: theme.textTheme.bodySmall),
+                          Text(s.chartBalance, style: theme.textTheme.titleSmall),
+                          for (final n in r.elementNotes) Text('· ${s.text(n)}', style: theme.textTheme.bodySmall),
                         ],
                         if (r.zodiacNotes.isNotEmpty) ...[
                           const Divider(),
-                          Text('生肖用字', style: theme.textTheme.titleSmall),
-                          for (final n in r.zodiacNotes) Text('· $n', style: theme.textTheme.bodySmall),
+                          Text(s.zodiacChars, style: theme.textTheme.titleSmall),
+                          for (final n in r.zodiacNotes) Text('· ${s.text(n)}', style: theme.textTheme.bodySmall),
                         ],
                       ],
                     ),
@@ -143,9 +146,9 @@ class _NamingScreenState extends State<NamingScreen> {
                 ),
                 const SizedBox(height: 8),
                 AiReadingCard(
-                  title: 'AI 姓名解读',
+                  title: s.aiName,
                   load: (api) => api.interpretName(r.toJson(), chart?.toJson()),
-                  localText: () => localInterpretName(r),
+                  localText: () => s.en ? enInterpretName(r) : localInterpretName(r),
                 ),
               ],
               const Disclaimer(),

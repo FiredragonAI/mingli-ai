@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../core/almanac/almanac.dart';
 import '../core/interpret/local_interpreter.dart';
+import '../core/interpret/local_interpreter_en.dart';
+import '../l10n/glossary.dart';
+import '../l10n/strings.dart';
 import '../services/app_state.dart';
 import 'theme.dart';
 import 'widgets/ai_reading_card.dart';
@@ -22,17 +25,25 @@ class _AlmanacScreenState extends State<AlmanacScreen> {
   Widget build(BuildContext context) {
     final a = almanacFor(_date.year, _date.month, _date.day);
     final theme = Theme.of(context);
+    final s = S.of(context);
     final chart = context.watch<AppState>().chart;
+    final sep = s.en ? ', ' : '  ';
+
+    final lunarLine = s.en
+        ? 'Lunar month ${a.lunar.month}${a.lunar.isLeapMonth ? ' (leap)' : ''}, day ${a.lunar.day} · ${s.weekday(a.weekday)}'
+        : s.text('${a.lunar.monthName}${a.lunar.dayName} · ${s.weekday(a.weekday)}');
+    final ganZhi = s.en
+        ? '${stemBranchEn(a.yearPillar)} year · ${stemBranchEn(a.monthPillar)} month · ${stemBranchEn(a.dayPillar)} day'
+        : s.text(a.ganZhiText);
+    final clash = s.en
+        ? 'Clashes ${animalEnglish[a.clashPillar.branch]} (${stemBranchEn(a.clashPillar)}) · Sha ${s.term(a.shaDirection)}'
+        : s.text(a.clashText);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('黄历'),
+        title: Text(s.almanac),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.today),
-            tooltip: '回到今天',
-            onPressed: () => setState(() => _date = DateTime.now()),
-          ),
+          IconButton(icon: const Icon(Icons.today), tooltip: s.backToToday, onPressed: () => setState(() => _date = DateTime.now())),
         ],
       ),
       body: Center(
@@ -52,23 +63,23 @@ class _AlmanacScreenState extends State<AlmanacScreen> {
                           IconButton(onPressed: () => setState(() => _date = _date.subtract(const Duration(days: 1))), icon: const Icon(Icons.chevron_left)),
                           TextButton(
                             onPressed: () async {
-                              final d = await showDatePicker(context: context, initialDate: _date, firstDate: DateTime(1900), lastDate: DateTime(2100), locale: const Locale('zh'));
+                              final d = await showDatePicker(context: context, initialDate: _date, firstDate: DateTime(1900), lastDate: DateTime(2100));
                               if (d != null) setState(() => _date = d);
                             },
-                            child: Text(a.dateText, style: theme.textTheme.titleMedium),
+                            child: Text(s.ymd(a.year, a.month, a.day), style: theme.textTheme.titleMedium),
                           ),
                           IconButton(onPressed: () => setState(() => _date = _date.add(const Duration(days: 1))), icon: const Icon(Icons.chevron_right)),
                         ],
                       ),
                       Text('${a.day}', style: theme.textTheme.displayLarge?.copyWith(fontWeight: FontWeight.w700, color: AppColors.cinnabar)),
-                      Text('${a.lunar.monthName}${a.lunar.dayName} · ${a.weekdayName}', style: theme.textTheme.titleMedium),
+                      Text(lunarLine, style: theme.textTheme.titleMedium),
                       const SizedBox(height: 4),
-                      Text(a.ganZhiText, style: theme.textTheme.bodyMedium),
-                      Text('属${a.zodiac} · ${a.jianChu}日 · ${a.zhiShen}(${a.isHuangDao ? '黄道' : '黑道'}) · ${a.xiu}', style: theme.textTheme.bodySmall),
+                      Text(ganZhi, style: theme.textTheme.bodyMedium),
+                      Text(s.almanacLine(s.animal(a.yearPillar.branch), a.jianChu, a.zhiShen, a.isHuangDao, a.xiu), style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
                       if (a.solarTerm != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 6),
-                          child: Chip(label: Text('今日 ${a.solarTerm!.name}'), backgroundColor: AppColors.gold.withValues(alpha: 0.2)),
+                          child: Chip(label: Text(s.solarTermToday(s.term(a.solarTerm!.name))), backgroundColor: AppColors.gold.withValues(alpha: 0.2)),
                         ),
                     ],
                   ),
@@ -80,9 +91,9 @@ class _AlmanacScreenState extends State<AlmanacScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(child: _YiJi(title: '宜', items: a.suitable, color: AppColors.jade)),
+                      Expanded(child: _YiJi(title: s.suitable, text: a.suitable.isEmpty ? '—' : s.text(a.suitable.join(sep)), color: AppColors.jade)),
                       const SizedBox(width: 16),
-                      Expanded(child: _YiJi(title: '忌', items: a.unsuitable, color: AppColors.cinnabar)),
+                      Expanded(child: _YiJi(title: s.unsuitable, text: a.unsuitable.isEmpty ? '—' : s.text(a.unsuitable.join(sep)), color: AppColors.cinnabar)),
                     ],
                   ),
                 ),
@@ -93,12 +104,12 @@ class _AlmanacScreenState extends State<AlmanacScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _kv(theme, '冲煞', a.clashText),
-                      _kv(theme, '吉神', a.auspiciousGods.join(' ')),
-                      if (a.inauspiciousGods.isNotEmpty) _kv(theme, '凶神', a.inauspiciousGods.join(' ')),
-                      _kv(theme, '喜神', a.joyDirection),
-                      _kv(theme, '财神', a.wealthDirection),
-                      _kv(theme, '彭祖', a.pengZu.join(';')),
+                      _kv(theme, s.clash, clash),
+                      _kv(theme, s.auspiciousGods, s.text(a.auspiciousGods.join(' '))),
+                      if (a.inauspiciousGods.isNotEmpty) _kv(theme, s.inauspiciousGods, s.text(a.inauspiciousGods.join(' '))),
+                      _kv(theme, s.joyGod, s.term(a.joyDirection)),
+                      _kv(theme, s.wealthGod, s.term(a.wealthDirection)),
+                      _kv(theme, s.pengZu, s.text(a.pengZu.join(';'))),
                     ],
                   ),
                 ),
@@ -109,7 +120,7 @@ class _AlmanacScreenState extends State<AlmanacScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('时辰吉凶', style: theme.textTheme.titleMedium),
+                      Text(s.hourFortunes, style: theme.textTheme.titleMedium),
                       const SizedBox(height: 8),
                       Wrap(
                         spacing: 6,
@@ -124,9 +135,9 @@ class _AlmanacScreenState extends State<AlmanacScreen> {
                               ),
                               child: Column(
                                 children: [
-                                  Text(h.stemBranch.name, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+                                  Text(s.en ? stemBranchEn(h.stemBranch) : h.stemBranch.name, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
                                   Text(h.range, style: theme.textTheme.labelSmall),
-                                  Text(h.zhiShen, style: theme.textTheme.labelSmall),
+                                  Text(s.term(h.zhiShen), style: theme.textTheme.labelSmall),
                                 ],
                               ),
                             ),
@@ -137,13 +148,13 @@ class _AlmanacScreenState extends State<AlmanacScreen> {
                 ),
               ),
               ExpansionTile(
-                title: const Text('宜忌依据'),
-                children: [for (final n in a.notes) ListTile(dense: true, title: Text(n))],
+                title: Text(s.whyRules),
+                children: [for (final n in a.notes) ListTile(dense: true, title: Text(s.text(n)))],
               ),
               AiReadingCard(
-                title: 'AI 择日建议',
+                title: s.aiAlmanac,
                 load: (api) => api.interpretAlmanac(a.toJson(), chart?.toJson()),
-                localText: () => localInterpretAlmanac(a, chart: chart),
+                localText: () => s.en ? enInterpretAlmanac(a, chart: chart) : localInterpretAlmanac(a, chart: chart),
               ),
               const Disclaimer(),
             ],
@@ -158,7 +169,7 @@ class _AlmanacScreenState extends State<AlmanacScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(width: 44, child: Text(k, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline))),
+            SizedBox(width: 72, child: Text(k, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline))),
             Expanded(child: Text(v, style: theme.textTheme.bodyMedium)),
           ],
         ),
@@ -166,9 +177,9 @@ class _AlmanacScreenState extends State<AlmanacScreen> {
 }
 
 class _YiJi extends StatelessWidget {
-  const _YiJi({required this.title, required this.items, required this.color});
+  const _YiJi({required this.title, required this.text, required this.color});
   final String title;
-  final List<String> items;
+  final String text;
   final Color color;
 
   @override
@@ -178,14 +189,14 @@ class _YiJi extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 32,
-          height: 32,
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           alignment: Alignment.center,
           decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(6)),
           child: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
         ),
         const SizedBox(height: 8),
-        Text(items.isEmpty ? '—' : items.join('  '), style: theme.textTheme.bodyMedium?.copyWith(height: 1.8)),
+        Text(text, style: theme.textTheme.bodyMedium?.copyWith(height: 1.8)),
       ],
     );
   }

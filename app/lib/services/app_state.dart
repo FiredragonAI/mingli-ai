@@ -1,11 +1,14 @@
 /// 应用状态。
 library;
 
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:flutter/foundation.dart';
 
 import '../core/bazi/bazi_chart.dart';
 import '../core/fortune/daily_fortune.dart';
 import '../core/marriage/marriage.dart';
+import '../l10n/app_language.dart';
 import 'api_client.dart';
 import 'storage/profile_store.dart';
 
@@ -41,9 +44,16 @@ class AppState extends ChangeNotifier {
   /// 关闭时:云端可达就用 AI,不可达由 AiReadingCard 自动退回本机生成。
   bool useLocalInterpretation = false;
 
+  /// 界面语言;同时决定本机解读的语言与发给云端的输出语言。
+  AppLanguage language = AppLanguage.zhHans;
+
   ApiClient? _api;
-  ApiClient get api =>
-      _api ??= ApiClient(baseUrl: serverUrl, deviceId: deviceId, appToken: appToken);
+  ApiClient get api => _api ??= ApiClient(
+        baseUrl: serverUrl,
+        deviceId: deviceId,
+        appToken: appToken,
+        language: language.code,
+      );
 
   bool get isDefaultServerUrl => serverUrl == defaultServerUrl;
 
@@ -56,6 +66,10 @@ class AppState extends ChangeNotifier {
     deviceId = await _store.deviceId();
     biometricConsent = await _store.hasBiometricConsent();
     useLocalInterpretation = await _store.loadUseLocalInterpretation();
+    final savedLang = await _store.loadLanguage();
+    language = savedLang == null
+        ? AppLanguage.fromSystem(PlatformDispatcher.instance.locale)
+        : AppLanguage.fromCode(savedLang);
     if (active != null) _recompute();
     notifyListeners();
     serverReachable = await api.ping();
@@ -141,6 +155,15 @@ class AppState extends ChangeNotifier {
   Future<void> revokeBiometricConsent() async {
     biometricConsent = false;
     await _store.setBiometricConsent(false);
+    notifyListeners();
+  }
+
+  Future<void> setLanguage(AppLanguage l) async {
+    if (l == language) return;
+    language = l;
+    await _store.saveLanguage(l.code);
+    _api?.dispose();
+    _api = null; // 让新的 ApiClient 带上新的语言
     notifyListeners();
   }
 

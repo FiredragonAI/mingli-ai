@@ -11,16 +11,18 @@ const cache = new LruCache<InterpretResult>();
 
 // 客户端只传结构化对象;字段名固定,值是 JSON。大小由 body limit 控制。
 const obj = z.record(z.unknown());
+// 输出语言:客户端界面语言,决定模型用哪种语言写解读
+const language = z.enum(["zh-Hans", "zh-Hant", "en"]).optional();
 const schemas: Record<Kind, z.ZodTypeAny> = {
-  bazi: z.object({ chart: obj, focus: z.string().max(60).optional() }).strict(),
-  daily: z.object({ chart: obj, fortune: obj }).strict(),
-  marriage: z.object({ marriage: obj }).strict(),
-  name: z.object({ name: obj, chart: obj.nullable().optional() }).strict(),
-  almanac: z.object({ almanac: obj, chart: obj.nullable().optional() }).strict(),
-  palm: z.object({ features: obj, chart: obj.nullable().optional() }).strict(),
-  face: z.object({ features: obj, chart: obj.nullable().optional() }).strict(),
+  bazi: z.object({ chart: obj, focus: z.string().max(60).optional(), language }).strict(),
+  daily: z.object({ chart: obj, fortune: obj, language }).strict(),
+  marriage: z.object({ marriage: obj, language }).strict(),
+  name: z.object({ name: obj, chart: obj.nullable().optional(), language }).strict(),
+  almanac: z.object({ almanac: obj, chart: obj.nullable().optional(), language }).strict(),
+  palm: z.object({ features: obj, chart: obj.nullable().optional(), language }).strict(),
+  face: z.object({ features: obj, chart: obj.nullable().optional(), language }).strict(),
   zodiac: z
-    .object({ zodiac: obj, match: obj.nullable().optional(), chart: obj.nullable().optional() })
+    .object({ zodiac: obj, match: obj.nullable().optional(), chart: obj.nullable().optional(), language })
     .strict(),
 };
 

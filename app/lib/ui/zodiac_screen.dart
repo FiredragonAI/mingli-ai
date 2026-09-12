@@ -3,7 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../core/bazi/bazi_chart.dart';
 import '../core/interpret/local_interpreter.dart';
+import '../core/interpret/local_interpreter_en.dart';
 import '../core/zodiac/western_zodiac.dart';
+import '../l10n/glossary.dart';
+import '../l10n/strings.dart';
 import '../services/app_state.dart';
 import 'theme.dart';
 import 'widgets/ai_reading_card.dart';
@@ -22,15 +25,21 @@ class ZodiacScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
+    final s = S.of(context);
     final chart = state.chart!;
     final me = zodiacOfChart(chart);
     final partner = state.partnerChart == null ? null : zodiacOfChart(state.partnerChart!);
     final match = partner == null ? null : zodiacMatch(me.sun, partner.sun);
     final theme = Theme.of(context);
-    final s = me.sun;
+    final sign = me.sun;
+    final zen = zodiacEn[sign.index];
+
+    String name(ZodiacSign z) => s.en ? z.english : s.text(z.name);
+    List<String> kw(List<String> zh, List<String> en) => s.en ? en : zh.map(s.text).toList();
+    final joiner = s.en ? ', ' : '、';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('星座')),
+      appBar: AppBar(title: Text(s.zodiac)),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
@@ -42,9 +51,9 @@ class ZodiacScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      Text(s.symbol, style: const TextStyle(fontSize: 64, height: 1.1)),
-                      Text(s.name, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700)),
-                      Text('${s.english} · ${s.dateRange}',
+                      Text(sign.symbol, style: const TextStyle(fontSize: 64, height: 1.1)),
+                      Text(name(sign), style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700)),
+                      Text('${s.en ? s.text(sign.name) : sign.english} · ${sign.dateRange}',
                           style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
                       const SizedBox(height: 12),
                       Wrap(
@@ -52,20 +61,16 @@ class ZodiacScreen extends StatelessWidget {
                         runSpacing: 6,
                         alignment: WrapAlignment.center,
                         children: [
-                          Chip(label: Text('${s.element.label}象'), backgroundColor: _elementColor(s.element).withValues(alpha: 0.18)),
-                          Chip(label: Text('${s.modality.label}星座')),
-                          Chip(label: Text('守护星 ${s.ruler}')),
-                          Chip(label: Text('太阳 ${me.sunDegreeInSign.toStringAsFixed(1)}°')),
+                          Chip(label: Text(s.elementSign(s.zodiacElement(sign.element.label))), backgroundColor: _elementColor(sign.element).withValues(alpha: 0.18)),
+                          Chip(label: Text(s.modalitySign(s.zodiacModality(sign.modality.label)))),
+                          Chip(label: Text(s.ruler(s.term(sign.ruler)))),
+                          Chip(label: Text(s.sunDegree(me.sunDegreeInSign.toStringAsFixed(1)))),
                         ],
                       ),
                       if (me.nearCusp)
                         Padding(
                           padding: const EdgeInsets.only(top: 12),
-                          child: Text(
-                            '出生在换宫日附近,距${me.cuspNeighbour!.name}边界不到 1°,两座特质可能兼有。',
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodySmall?.copyWith(color: AppColors.gold),
-                          ),
+                          child: Text(s.cuspNote(name(me.cuspNeighbour!)), textAlign: TextAlign.center, style: theme.textTheme.bodySmall?.copyWith(color: AppColors.gold)),
                         ),
                     ],
                   ),
@@ -74,11 +79,11 @@ class ZodiacScreen extends StatelessWidget {
               Card(
                 child: ListTile(
                   leading: Text(me.rising?.symbol ?? '—', style: const TextStyle(fontSize: 28)),
-                  title: Text(me.rising == null ? '上升星座:信息不足' : '上升 ${me.rising!.name}'),
+                  title: Text(me.rising == null ? s.risingUnknown : s.risingSign(name(me.rising!))),
                   subtitle: Text(
                     me.rising == null
-                        ? '需要出生地经纬度'
-                        : '${me.rising!.risingTrait}。\n上升星座约每两小时换一个,依赖准确出生时间。',
+                        ? s.risingNeedsPlace
+                        : '${s.en ? zodiacEn[me.rising!.index].rising : s.text(me.rising!.risingTrait)}.\n${s.risingNote}',
                     style: theme.textTheme.bodySmall,
                   ),
                   isThreeLine: me.rising != null,
@@ -90,18 +95,15 @@ class ZodiacScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('性格画像', style: theme.textTheme.titleMedium),
-                      const SizedBox(height: 8),
-                      Text('${s.element.label}象:${s.element.keywords} · ${s.modality.label}星座:${s.modality.keywords}',
-                          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
+                      Text(s.personality, style: theme.textTheme.titleMedium),
                       const SizedBox(height: 12),
-                      _chipRow(theme, '关键词', s.keywords, theme.colorScheme.primaryContainer),
+                      _chipRow(theme, s.keywords, kw(sign.keywords, zen.keywords), theme.colorScheme.primaryContainer),
                       const SizedBox(height: 8),
-                      _chipRow(theme, '优势', s.strengths, AppColors.jade.withValues(alpha: 0.18)),
+                      _chipRow(theme, s.strengths, kw(sign.strengths, zen.strengths), AppColors.jade.withValues(alpha: 0.18)),
                       const SizedBox(height: 8),
-                      _chipRow(theme, '需留意', s.weaknesses, theme.colorScheme.errorContainer.withValues(alpha: 0.6)),
+                      _chipRow(theme, s.watchOut, kw(sign.weaknesses, zen.weaknesses), theme.colorScheme.errorContainer.withValues(alpha: 0.6)),
                       const Divider(height: 24),
-                      Text('幸运色 ${s.luckyColor} · 幸运数字 ${s.luckyNumbers.join('、')}', style: theme.textTheme.bodyMedium),
+                      Text(s.luckyLine(s.en ? zen.color : s.text(sign.luckyColor), sign.luckyNumbers.join(joiner)), style: theme.textTheme.bodyMedium),
                     ],
                   ),
                 ),
@@ -112,39 +114,32 @@ class ZodiacScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('星座配对', style: theme.textTheme.titleMedium),
+                      Text(s.zodiacMatchTitle, style: theme.textTheme.titleMedium),
                       const SizedBox(height: 8),
                       if (match != null) ...[
                         Row(
                           children: [
-                            Expanded(
-                              child: Text('${match.a.symbol}${match.a.name} × ${match.b.symbol}${match.b.name}',
-                                  style: theme.textTheme.titleSmall),
-                            ),
-                            Text('${match.score}',
-                                style: theme.textTheme.headlineSmall
-                                    ?.copyWith(fontWeight: FontWeight.w700, color: theme.colorScheme.primary)),
-                            Text(' · ${match.summary}', style: theme.textTheme.bodyMedium),
+                            Expanded(child: Text('${match.a.symbol}${name(match.a)} × ${match.b.symbol}${name(match.b)}', style: theme.textTheme.titleSmall)),
+                            Text('${match.score}', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700, color: theme.colorScheme.primary)),
+                            Text(' · ${s.term(match.summary)}', style: theme.textTheme.bodyMedium),
                           ],
                         ),
                         const SizedBox(height: 6),
-                        for (final r in match.reasons) Text('· $r', style: theme.textTheme.bodySmall),
+                        for (final r in match.reasons) Text('· ${s.text(r)}', style: theme.textTheme.bodySmall),
                         const Divider(height: 24),
                       ],
-                      Text('与${s.name}较合拍:', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
+                      Text(s.bestMatches(name(sign)), style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
                       const SizedBox(height: 6),
                       Wrap(
                         spacing: 8,
                         children: [
-                          for (final b in bestMatchesFor(s))
-                            Chip(avatar: Text(b.symbol), label: Text('${b.name} ${zodiacMatch(s, b).score}')),
+                          for (final b in bestMatchesFor(sign)) Chip(avatar: Text(b.symbol), label: Text('${name(b)} ${zodiacMatch(sign, b).score}')),
                         ],
                       ),
                       if (match == null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8),
-                          child: Text('在"合婚"里填写对方出生信息后,这里会显示两人的星座配对。',
-                              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
+                          child: Text(s.pairingHint, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
                         ),
                     ],
                   ),
@@ -152,9 +147,11 @@ class ZodiacScreen extends StatelessWidget {
               ),
               AiReadingCard(
                 key: ValueKey('zodiac-${me.sun.index}-${me.rising?.index}-${match?.score}'),
-                title: 'AI 星座解读',
+                title: s.aiZodiac,
                 load: (api) => api.interpretZodiac(me.toJson(), match?.toJson(), chart.toJson()),
-                localText: () => localInterpretZodiac(me, match: match, chart: chart),
+                localText: () => s.en
+                    ? enInterpretZodiac(me, match: match, chart: chart)
+                    : localInterpretZodiac(me, match: match, chart: chart),
               ),
               const Disclaimer(),
             ],
@@ -168,18 +165,14 @@ class ZodiacScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 56,
+            width: 72,
             child: Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(label, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
             ),
           ),
           Expanded(
-            child: Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [for (final t in items) Chip(label: Text(t), backgroundColor: color)],
-            ),
+            child: Wrap(spacing: 6, runSpacing: 6, children: [for (final t in items) Chip(label: Text(t), backgroundColor: color)]),
           ),
         ],
       );
