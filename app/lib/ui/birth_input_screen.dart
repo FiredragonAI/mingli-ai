@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/bazi/bazi_chart.dart';
 import '../data/cities.dart';
+import '../l10n/app_language.dart';
 import '../l10n/strings.dart';
 import '../services/app_state.dart';
 
@@ -131,6 +132,14 @@ class _BirthInputScreenState extends State<BirthInputScreen> {
             padding: const EdgeInsets.all(16),
             children: [
               if (widget.firstRun) ...[
+                // 语言放在最前面:用户第一眼就能换成自己看得懂的
+                SegmentedButton<AppLanguage>(
+                  segments: [for (final l in AppLanguage.values) ButtonSegment(value: l, label: Text(l.nativeName))],
+                  selected: {context.watch<AppState>().language},
+                  onSelectionChanged: (v) => context.read<AppState>().setLanguage(v.first),
+                  showSelectedIcon: false,
+                ),
+                const SizedBox(height: 20),
                 Text(s.firstRunTitle, style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 4),
                 Text(s.privacyNote, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
