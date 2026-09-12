@@ -23,6 +23,11 @@ on:
 
 env:
   FLUTTER_VERSION: "3.47.3"
+  # 云端解读服务地址与口令(见 docs/DEPLOY.md)。secrets 未设置时为空串,
+  # app 内部退回 http://localhost:8787。
+  DART_DEFINES: >-
+    --dart-define=MINGLI_API_URL=${{ secrets.MINGLI_API_URL }}
+    --dart-define=MINGLI_APP_TOKEN=${{ secrets.MINGLI_APP_TOKEN }}
 
 jobs:
   test:
@@ -65,7 +70,7 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
       - run: flutter pub get
-      - run: flutter build windows --release
+      - run: flutter build windows --release ${{ env.DART_DEFINES }}
       - uses: actions/upload-artifact@v4
         with:
           name: mingli-ai-windows
@@ -95,7 +100,7 @@ jobs:
       - name: Build (unsigned)
         if: env.HAS_SIGNING != 'true'
         run: |
-          flutter build ios --release --no-codesign
+          flutter build ios --release --no-codesign ${{ env.DART_DEFINES }}
           cd build/ios/iphoneos && zip -r ../../../Runner-unsigned.zip Runner.app
       - uses: actions/upload-artifact@v4
         if: env.HAS_SIGNING != 'true'
@@ -153,7 +158,7 @@ jobs:
       - name: Build IPA
         if: env.HAS_SIGNING == 'true'
         run: |
-          flutter build ipa --release \
+          flutter build ipa --release ${{ env.DART_DEFINES }} \
             --build-number=${{ github.run_number }} \
             --export-options-plist="$RUNNER_TEMP/ExportOptions.plist"
       - uses: actions/upload-artifact@v4

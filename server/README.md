@@ -14,8 +14,13 @@ Claude 代理。客户端把**算好的盘面 JSON**发来,这里加提示词调
 | POST | `/v1/interpret/almanac` | `{ almanac, chart? }` |
 | POST | `/v1/interpret/palm` | `{ features, chart? }` |
 | POST | `/v1/interpret/face` | `{ features, chart? }` |
+| POST | `/v1/interpret/zodiac` | `{ zodiac, match?, chart? }` |
 
 响应:`{ text, sections, model, usage, cached }`。
+
+设置了 `APP_TOKEN` 时,`/v1/interpret/*` 要求请求头 `X-App-Token` 与之一致,否则 401。
+
+部署到云端见 [docs/DEPLOY.md](../docs/DEPLOY.md)(Render 蓝图 `render.yaml` 在仓库根目录,Fly 配置 `fly.toml` 在本目录)。
 
 ## 设计要点
 

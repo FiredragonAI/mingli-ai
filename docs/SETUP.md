@@ -25,16 +25,14 @@ flutter test
 首跑测试重点看 `test/astro/solar_terms_test.dart` 和 `test/calendar/lunar_test.dart`:
 它们对照的是历书参照值,全绿说明天文底层无误。
 
-### 资源文件(需自行放置)
+### 资源文件
 
-| 路径 | 内容 | 来源 |
+| 路径 | 内容 | 状态 |
 |---|---|---|
-| `assets/data/kangxi_strokes.json` | 康熙笔画字典 | 开源整理版或自建;格式见 `stroke_dictionary.dart` |
-| `assets/models/hand_landmark_full.tflite` | MediaPipe 手部关键点 | MediaPipe 官方发布 |
-| `assets/models/face_landmark.tflite` | MediaPipe 面部 468 点 | MediaPipe 官方发布 |
-| `assets/fonts/SourceHanSerifSC-*.otf` | 思源宋体 | Adobe 开源(SIL OFL) |
-
-Windows 端 `tflite_flutter` 需要 `libtensorflowlite_c.dll`,参考该包 README 放到 `windows/` 下。
+| `assets/data/kangxi_strokes.json` | 康熙笔画字典(10.3 万字,由 Unihan 派生) | 已随仓库提供,生成脚本 `tools/build_kangxi_dict.mjs` |
+| `assets/models/hand_landmark_full.tflite` | MediaPipe 手部关键点 | 已随仓库提供(Apache-2.0) |
+| `assets/models/face_landmark.tflite` | MediaPipe 面部 468 点 | 已随仓库提供(Apache-2.0) |
+| `assets/fonts/SourceHanSerifSC-*.otf` | 思源宋体 | 可选;放入后取消 `pubspec.yaml` 里 fonts 段的注释 |
 
 ### 运行
 
@@ -46,7 +44,10 @@ flutter run -d windows
 flutter run -d <ios-device-id>
 ```
 
-首次启动在"设置"里填后端地址(默认 `http://localhost:8787`)。
+后端地址在编译时注入:`--dart-define=MINGLI_API_URL=https://…`(以及可选的
+`--dart-define=MINGLI_APP_TOKEN=…`)。不带参数时默认 `http://localhost:8787`,
+也可以运行后在"设置"里临时改。云端部署见 [DEPLOY.md](DEPLOY.md)。
+连不上云端时 app 自动退回本机规则引擎生成解读。
 
 ## 后端
 

@@ -13,6 +13,7 @@ import 'widgets/ai_reading_card.dart';
 import 'widgets/disclaimer.dart';
 import 'widgets/element_bars.dart';
 import 'widgets/pillar_table.dart';
+import 'zodiac_screen.dart' show zodiacOfChart;
 
 class ChartScreen extends StatelessWidget {
   const ChartScreen({super.key});
@@ -72,6 +73,7 @@ class _HeaderCard extends StatelessWidget {
     final theme = Theme.of(context);
     final i = chart.input;
     final clock = chart.trueSolar.trueSolarClock;
+    final western = zodiacOfChart(chart).sun;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -100,6 +102,7 @@ class _HeaderCard extends StatelessWidget {
               runSpacing: 6,
               children: [
                 Chip(label: Text('生肖 ${chart.zodiac}')),
+                Chip(label: Text('${western.symbol} ${western.name}')),
                 Chip(label: Text('日主 ${chart.dayMasterName}${chart.dayMaster.label}')),
                 Chip(label: Text('胎元 ${chart.taiYuan.name}')),
                 Chip(label: Text('命宫 ${chart.mingGong.name}')),

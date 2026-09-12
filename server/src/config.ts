@@ -18,4 +18,8 @@ export const config = {
   cacheMaxEntries: Number(process.env.CACHE_MAX_ENTRIES ?? 5000),
   cacheTtlMs: Number(process.env.CACHE_TTL_DAYS ?? 7) * 86_400_000,
   logLevel: process.env.LOG_LEVEL ?? "info",
+  // 可选的客户端共享口令。设了以后 /v1/interpret 只接受带 X-App-Token 的请求,
+  // 把"随便谁发现了地址就能白用"挡掉。它编在 app 里,所以防误用不防有心人;
+  // 真正的成本护栏是上面的限流与缓存。
+  appToken: process.env.APP_TOKEN?.trim() || null,
 };

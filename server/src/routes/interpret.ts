@@ -19,6 +19,9 @@ const schemas: Record<Kind, z.ZodTypeAny> = {
   almanac: z.object({ almanac: obj, chart: obj.nullable().optional() }).strict(),
   palm: z.object({ features: obj, chart: obj.nullable().optional() }).strict(),
   face: z.object({ features: obj, chart: obj.nullable().optional() }).strict(),
+  zodiac: z
+    .object({ zodiac: obj, match: obj.nullable().optional(), chart: obj.nullable().optional() })
+    .strict(),
 };
 
 export const interpretRouter = Router();

@@ -1,0 +1,31 @@
+# Render 蓝图:在 render.com 选 New → Blueprint → 选本仓库,即按此文件建服务。
+# 详细步骤见 docs/DEPLOY.md。
+services:
+  - type: web
+    name: mingli-server
+    runtime: docker
+    rootDir: server
+    dockerfilePath: ./Dockerfile
+    # free 档会在空闲 15 分钟后休眠、首个请求慢几十秒;正式对外建议 starter
+    plan: free
+    region: singapore
+    healthCheckPath: /healthz
+    envVars:
+      # 在 Render 面板里手填,不会写进仓库
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # Render 自动生成一个随机口令;编 app 时用 --dart-define=MINGLI_APP_TOKEN=<这个值>
+      - key: APP_TOKEN
+        generateValue: true
+      - key: CLAUDE_MODEL
+        value: claude-opus-5
+      - key: CLAUDE_EFFORT
+        value: high
+      - key: CLAUDE_MAX_TOKENS
+        value: "6000"
+      - key: RATE_LIMIT_PER_10MIN
+        value: "30"
+      - key: CACHE_TTL_DAYS
+        value: "7"
+      - key: LOG_LEVEL
+        value: info

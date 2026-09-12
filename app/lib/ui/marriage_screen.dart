@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../core/bazi/bazi_chart.dart';
 import '../core/interpret/local_interpreter.dart';
+import '../core/zodiac/western_zodiac.dart';
 import '../services/app_state.dart';
 import 'birth_input_screen.dart';
+import 'zodiac_screen.dart' show zodiacOfChart;
 import 'widgets/ai_reading_card.dart';
 import 'widgets/disclaimer.dart';
 
@@ -103,6 +105,7 @@ class MarriageScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                _ZodiacMatchCard(me: zodiacOfChart(me), partner: zodiacOfChart(partner!)),
                 AiReadingCard(
                   title: 'AI 合婚解读',
                   load: (api) => api.interpretMarriage(result.toJson()),
@@ -112,6 +115,42 @@ class MarriageScreen extends StatelessWidget {
               const Disclaimer(),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ZodiacMatchCard extends StatelessWidget {
+  const _ZodiacMatchCard({required this.me, required this.partner});
+  final ZodiacProfile me;
+  final ZodiacProfile partner;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final m = zodiacMatch(me.sun, partner.sun);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text('星座配对 · ${m.a.symbol}${m.a.name} × ${m.b.symbol}${m.b.name}',
+                      style: theme.textTheme.titleSmall),
+                ),
+                Text('${m.score}', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                Text(' · ${m.summary}', style: theme.textTheme.labelSmall),
+              ],
+            ),
+            const SizedBox(height: 6),
+            LinearProgressIndicator(value: m.score / 100, minHeight: 8, borderRadius: BorderRadius.circular(4)),
+            const SizedBox(height: 8),
+            for (final r in m.reasons) Text('· $r', style: theme.textTheme.bodySmall),
+          ],
         ),
       ),
     );

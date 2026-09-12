@@ -71,9 +71,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text('解读服务', style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
               SwitchListTile(
-                title: const Text('离线本地解读'),
-                subtitle: const Text('由本机规则引擎生成解读文字,不联网、不使用任何 AI API;'
-                    '文字相对朴素,但排盘数据完全一致,可随时切回云端 AI'),
+                title: const Text('始终使用离线本地解读'),
+                subtitle: const Text('开:一律由本机规则引擎生成,不联网。'
+                    '关:能连上云端就用 AI,连不上时自动改用本机生成,不会空白。'),
                 value: state.useLocalInterpretation,
                 onChanged: (v) => state.setUseLocalInterpretation(v),
               ),
@@ -100,6 +100,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ),
+              if (!state.isDefaultServerUrl && !state.useLocalInterpretation)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      await state.resetServerUrl();
+                      _url.text = state.serverUrl;
+                    },
+                    icon: const Icon(Icons.restart_alt, size: 18),
+                    label: const Text('恢复默认地址'),
+                  ),
+                ),
               const SizedBox(height: 24),
               Text('隐私', style: theme.textTheme.titleMedium),
               SwitchListTile(

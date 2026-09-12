@@ -5,11 +5,26 @@ import 'package:provider/provider.dart';
 import '../../services/api_client.dart';
 import '../../services/app_state.dart';
 
+/// 解读文字从哪来。
+enum _Source {
+  /// 云端 AI。
+  cloud,
+
+  /// 用户在设置里主动选了离线本地。
+  localForced,
+
+  /// 云端连不上,自动退回本机生成。
+  localFallback,
+
+  /// 云端连不上且本模块没有本地兜底。
+  unavailable,
+}
+
 /// 通用 AI 解读卡片:点一下请求后端,展示 Markdown。
 ///
 /// [load] 拿到 ApiClient 后发请求,走云端解读。
-/// [localText] 在"设置 → 离线本地解读"打开时代替 [load]——同步生成 Markdown,
-/// 不发任何网络请求。两者都可以传;调用方决定这块内容值不值得做离线兜底。
+/// [localText] 是本机规则引擎的兜底:用户主动选离线时用它;
+/// 云端连不上或请求中途失败时也自动用它——用户永远不会面对一块空白或报错。
 class AiReadingCard extends StatefulWidget {
   const AiReadingCard({
     super.key,
@@ -33,40 +48,70 @@ class _AiReadingCardState extends State<AiReadingCard> {
   Object? _error;
   bool _loading = false;
 
+  /// 本次结果是否因云端失败而临时改用本机生成。
+  bool _fellBack = false;
+
   @override
   void initState() {
     super.initState();
     if (widget.autoLoad) WidgetsBinding.instance.addPostFrameCallback((_) => _run());
   }
 
-  bool get _useLocal =>
-      context.read<AppState>().useLocalInterpretation && widget.localText != null;
+  _Source _sourceOf(AppState s) {
+    final hasLocal = widget.localText != null;
+    if (s.useLocalInterpretation && hasLocal) return _Source.localForced;
+    if (s.serverReachable) return _Source.cloud;
+    if (hasLocal) return _Source.localFallback;
+    return _Source.unavailable;
+  }
+
+  void _setLocal({required bool fallback}) {
+    try {
+      final text = widget.localText!();
+      setState(() {
+        _result = Interpretation(text: text, sections: const {}, cached: false, model: 'local');
+        _error = null;
+        _fellBack = fallback;
+      });
+    } catch (e) {
+      setState(() => _error = e);
+    }
+  }
 
   Future<void> _run() async {
-    if (_useLocal) {
-      // 本地生成是纯函数、瞬时完成,不需要走 loading 态,但仍统一走一次
-      // setState 以复用下面的展示逻辑与错误兜底。
-      try {
-        final text = widget.localText!();
-        setState(() {
-          _result = Interpretation(text: text, sections: const {}, cached: false, model: '本地生成');
-          _error = null;
-        });
-      } catch (e) {
-        setState(() => _error = e);
-      }
-      return;
+    final state = context.read<AppState>();
+    switch (_sourceOf(state)) {
+      case _Source.localForced:
+        _setLocal(fallback: false);
+        return;
+      case _Source.localFallback:
+        _setLocal(fallback: true);
+        return;
+      case _Source.unavailable:
+        return;
+      case _Source.cloud:
+        break;
     }
+
     setState(() {
       _loading = true;
       _error = null;
+      _fellBack = false;
     });
     try {
-      final api = context.read<AppState>().api;
-      final r = await widget.load(api);
+      final r = await widget.load(state.api);
       if (mounted) setState(() => _result = r);
     } catch (e) {
-      if (mounted) setState(() => _error = e);
+      if (!mounted) return;
+      // 网络不通或服务端故障:有本地兜底就直接用,不让用户面对一条报错。
+      // 4xx(限流、内容拒绝)是要告诉用户的,不吞。
+      final transient = e is ApiException && (e.statusCode == 0 || e.statusCode >= 500);
+      if (transient && widget.localText != null) {
+        _setLocal(fallback: true);
+        state.refreshServerStatus();
+      } else {
+        setState(() => _error = e);
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -75,8 +120,26 @@ class _AiReadingCardState extends State<AiReadingCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final useLocal = context.watch<AppState>().useLocalInterpretation && widget.localText != null;
-    final reachable = useLocal || context.watch<AppState>().serverReachable;
+    final source = _sourceOf(context.watch<AppState>());
+
+    String? badge;
+    if (_result != null) {
+      if (_fellBack) {
+        badge = '云端暂不可用 · 本机生成';
+      } else if (_result!.model == 'local') {
+        badge = '本机生成 · 未联网';
+      } else if (_result!.cached) {
+        badge = '已缓存';
+      }
+    }
+
+    final hint = switch (source) {
+      _Source.cloud => '点击下方按钮,由 AI 为您解读这份盘面。',
+      _Source.localForced => '点击下方按钮,由本机规则引擎生成解读(无需联网)。',
+      _Source.localFallback => '当前连不上云端,将由本机规则引擎生成解读;联网后点"重新生成"可获得 AI 版本。',
+      _Source.unavailable => '当前无法连接解读服务,请检查网络。',
+    };
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -88,10 +151,8 @@ class _AiReadingCardState extends State<AiReadingCard> {
                 Icon(Icons.auto_awesome, color: theme.colorScheme.primary, size: 20),
                 const SizedBox(width: 8),
                 Expanded(child: Text(widget.title, style: theme.textTheme.titleMedium)),
-                if (_result?.model == '本地生成')
-                  Text('本地生成 · 未联网', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline))
-                else if (_result?.cached == true)
-                  Text('已缓存', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline)),
+                if (badge != null)
+                  Text(badge, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline)),
               ],
             ),
             const SizedBox(height: 12),
@@ -116,18 +177,11 @@ class _AiReadingCardState extends State<AiReadingCard> {
                 style: TextStyle(color: theme.colorScheme.error),
               )
             else
-              Text(
-                useLocal
-                    ? '点击下方按钮,由本机规则引擎为您生成解读(无需联网)。'
-                    : reachable
-                        ? '点击下方按钮,由 AI 为您解读这份盘面。'
-                        : '未连接到解读服务,请在"设置"中填写服务器地址,或开启离线本地解读。',
-                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline),
-              ),
+              Text(hint, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline)),
             const SizedBox(height: 12),
             if (!_loading)
               OutlinedButton.icon(
-                onPressed: reachable ? _run : null,
+                onPressed: source == _Source.unavailable ? null : _run,
                 icon: Icon(_result == null ? Icons.play_arrow : Icons.refresh),
                 label: Text(_result == null ? '开始解读' : '重新生成'),
               ),

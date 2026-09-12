@@ -19,7 +19,7 @@ app.use(
   cors({
     origin: config.corsOrigins.includes("*") ? true : config.corsOrigins,
     methods: ["POST", "GET"],
-    allowedHeaders: ["Content-Type", "X-Device-Id", "X-App-Version", "X-Platform"],
+    allowedHeaders: ["Content-Type", "X-Device-Id", "X-App-Version", "X-Platform", "X-App-Token"],
   }),
 );
 // 盘面 JSON 通常 10–30 KB;256 KB 上限足够,同时挡掉 base64 图片
@@ -40,6 +40,14 @@ app.use(
 
 app.get("/healthz", (_req, res) => {
   res.json({ ok: true, model: config.model, cache: cacheStats() });
+});
+
+app.use("/v1/interpret", (req, res, next) => {
+  if (config.appToken && req.header("x-app-token") !== config.appToken) {
+    res.status(401).json({ error: "未授权的客户端" });
+    return;
+  }
+  next();
 });
 
 app.use(

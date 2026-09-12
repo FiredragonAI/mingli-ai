@@ -21,23 +21,38 @@ class AppState extends ChangeNotifier {
   MarriageResult? marriage;
   DailyFortune? today;
 
-  String serverUrl = 'http://localhost:8787';
+  static const _envUrl = String.fromEnvironment('MINGLI_API_URL');
+  static const _envToken = String.fromEnvironment('MINGLI_APP_TOKEN');
+
+  /// 云端解读服务地址。发布版在编译时用
+  /// `--dart-define=MINGLI_API_URL=https://…` 注入,用户装上就能用;
+  /// 没注入就指向本机开发服务器。
+  static String get defaultServerUrl => _envUrl.isEmpty ? 'http://localhost:8787' : _envUrl;
+
+  /// 与服务端 APP_TOKEN 对应的共享口令,同样在编译时注入。
+  static String get appToken => _envToken;
+
+  String serverUrl = defaultServerUrl;
   String deviceId = '';
   bool biometricConsent = false;
   bool serverReachable = false;
 
   /// 开启后所有"AI 解读"卡片改用本机规则引擎生成文字,不联网、不经过任何 API。
+  /// 关闭时:云端可达就用 AI,不可达由 AiReadingCard 自动退回本机生成。
   bool useLocalInterpretation = false;
 
   ApiClient? _api;
-  ApiClient get api => _api ??= ApiClient(baseUrl: serverUrl, deviceId: deviceId);
+  ApiClient get api =>
+      _api ??= ApiClient(baseUrl: serverUrl, deviceId: deviceId, appToken: appToken);
+
+  bool get isDefaultServerUrl => serverUrl == defaultServerUrl;
 
   BirthInput? get active => profiles.isEmpty ? null : profiles[activeIndex.clamp(0, profiles.length - 1)];
 
   Future<void> init() async {
     profiles = await _store.loadProfiles();
     activeIndex = await _store.loadActiveIndex();
-    serverUrl = await _store.loadServerUrl();
+    serverUrl = await _store.loadServerUrl(defaultServerUrl);
     deviceId = await _store.deviceId();
     biometricConsent = await _store.hasBiometricConsent();
     useLocalInterpretation = await _store.loadUseLocalInterpretation();
@@ -104,6 +119,17 @@ class AppState extends ChangeNotifier {
     _api = null;
     serverReachable = await api.ping();
     notifyListeners();
+  }
+
+  Future<void> resetServerUrl() => setServerUrl(defaultServerUrl);
+
+  /// 重新探测云端是否可达(解读失败后、或从后台回来时调用)。
+  Future<void> refreshServerStatus() async {
+    final ok = await api.ping();
+    if (ok != serverReachable) {
+      serverReachable = ok;
+      notifyListeners();
+    }
   }
 
   Future<void> grantBiometricConsent() async {

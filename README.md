@@ -1,6 +1,6 @@
 # 命理师 AI
 
-八字 · 五行 · AI 解读 · 每日运势 · 合婚 · 姓名测试 · 黄历 · 手相/面相
+八字 · 五行 · AI 解读 · 每日运势 · 合婚 · 姓名测试 · 黄历 · 星座 · 手相/面相
 
 **平台**:iOS + Windows(Flutter 单一代码库)
 **AI**:自建 Node 后端代理 Claude API,客户端不持有密钥
@@ -21,7 +21,9 @@ mingli-ai/
 │   │   │   ├── almanac/      黄历:建除、二十八宿、宜忌、彭祖百忌
 │   │   │   ├── marriage/     合婚
 │   │   │   ├── naming/       姓名五格剖象
-│   │   │   └── fortune/      每日运势
+│   │   │   ├── fortune/      每日运势
+│   │   │   ├── zodiac/       太阳星座、上升星座、配对(回归黄道)
+│   │   │   └── interpret/    离线本地解读(规则引擎,不联网)
 │   │   ├── data/             常量表
 │   │   ├── models/           数据模型
 │   │   ├── services/         API 客户端、端侧影像特征提取
@@ -56,4 +58,4 @@ cd app && flutter pub get && flutter test
 cd server && npm install && npm run dev
 ```
 
-详见 [docs/SETUP.md](docs/SETUP.md)、[docs/ALGORITHM.md](docs/ALGORITHM.md)、[docs/COMPLIANCE.md](docs/COMPLIANCE.md)。
+详见 [docs/SETUP.md](docs/SETUP.md)、[docs/DEPLOY.md](docs/DEPLOY.md)(云端部署,让用户联网即可用 AI)、[docs/ALGORITHM.md](docs/ALGORITHM.md)、[docs/COMPLIANCE.md](docs/COMPLIANCE.md)。

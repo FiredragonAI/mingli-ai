@@ -50,12 +50,16 @@ class ApiClient {
   ApiClient({
     required this.baseUrl,
     required this.deviceId,
+    this.appToken = '',
     http.Client? client,
     this.timeout = const Duration(seconds: 60),
   }) : _client = client ?? http.Client();
 
   final String baseUrl;
   final String deviceId;
+
+  /// 与服务端 APP_TOKEN 一致的共享口令;空则不发。
+  final String appToken;
   final http.Client _client;
   final Duration timeout;
 
@@ -67,6 +71,7 @@ class ApiClient {
         'X-Device-Id': deviceId,
         'X-App-Version': appVersion,
         'X-Platform': Platform.operatingSystem,
+        if (appToken.isNotEmpty) 'X-App-Token': appToken,
       };
 
   Future<Interpretation> _post(String path, Map<String, dynamic> body) async {
@@ -121,6 +126,14 @@ class ApiClient {
   /// 面相。[features] 为 `FaceFeatures.toJson()`,不含图像。
   Future<Interpretation> interpretFace(Map<String, dynamic> features, Map<String, dynamic>? chart) =>
       _post('/v1/interpret/face', {'features': features, 'chart': chart});
+
+  /// 星座。[zodiac] 为 `ZodiacProfile.toJson()`,[match] 为 `ZodiacMatch.toJson()`。
+  Future<Interpretation> interpretZodiac(
+    Map<String, dynamic> zodiac,
+    Map<String, dynamic>? match,
+    Map<String, dynamic>? chart,
+  ) =>
+      _post('/v1/interpret/zodiac', {'zodiac': zodiac, 'match': match, 'chart': chart});
 
   /// 健康检查。
   Future<bool> ping() async {

@@ -7,7 +7,7 @@
  * 系统提示词是稳定前缀,放 cache_control;每次变化的盘面放 user 消息。
  */
 
-export type Kind = "bazi" | "daily" | "marriage" | "name" | "almanac" | "palm" | "face";
+export type Kind = "bazi" | "daily" | "marriage" | "name" | "almanac" | "palm" | "face" | "zodiac";
 
 const BASE = `你是一位深谙中国传统命理文化的解读师,文风温厚、克制、有文化底蕴,像一位见多识广的长者在茶桌边聊天。
 
@@ -85,6 +85,19 @@ const PER_KIND: Record<Kind, string> = {
 - 只解读 features 里有的项目。
 分段:## 整体格局(脸型、三停) / ## 五官所见(眉眼鼻口各一句,引用 palaces) / ## 性情倾向 / ## 小结
 措辞要让任何长相的人读完都觉得被尊重。`,
+
+  zodiac: `## 本次任务:星座解读(西方占星)
+数据含太阳星座(sun:元素、三态、守护星、宫内度数、关键词、优缺点)、可能的上升星座(rising)、
+是否临近换宫(nearCusp / cuspNeighbour),可能附带配对(match)与八字命盘(chart)。
+- 这是西方占星的通俗解读,风格可以比八字部分轻快一些,但同样克制、不下判决。
+- 太阳星座讲"内在驱动",上升星座讲"给人的第一印象与应对世界的方式";两者不同时点出反差。
+- nearCusp 为 true 时必须提醒:出生在换宫日附近,两个星座的特质可能兼有。
+分段:
+## 太阳星座 —— 元素与三态怎样塑造了这个人的核心动力(引用 keywords / strengths / weaknesses)
+## 上升星座 —— 有 rising 才写;没有就写"未提供出生时间与地点,略过"
+## 星座与八字的对照 —— 有 chart 才写:把星座元素和八字日主五行、日主强弱放在一起看,找一两处呼应或反差
+## 配对 —— 有 match 才写,依据 match.reasons,给相处建议而非结论
+## 一句话 —— 轻松、具体`,
 };
 
 export function systemPrompt(kind: Kind): string {
@@ -116,6 +129,10 @@ function labelOf(key: string): string {
       return "黄历";
     case "features":
       return "影像几何特征";
+    case "zodiac":
+      return "星座档案";
+    case "match":
+      return "星座配对";
     default:
       return key;
   }

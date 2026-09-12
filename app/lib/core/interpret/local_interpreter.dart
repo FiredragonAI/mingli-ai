@@ -21,6 +21,7 @@ import '../marriage/marriage.dart';
 import '../naming/name_analysis.dart';
 import '../vision/face_features.dart';
 import '../vision/palm_features.dart';
+import '../zodiac/western_zodiac.dart';
 
 const _localFooter = '\n\n---\n*以上内容由本机规则引擎生成,未连接任何云端服务,仅供娱乐参考。*';
 
@@ -275,6 +276,69 @@ String localInterpretFace(FaceFeatures f) {
   for (final n in f.notes) {
     buf.writeln('- $n');
   }
+
+  return buf.toString() + _localFooter;
+}
+
+/// 星座。
+String localInterpretZodiac(ZodiacProfile p, {ZodiacMatch? match, BaziChart? chart}) {
+  final s = p.sun;
+  final buf = StringBuffer();
+
+  buf.writeln(_section('太阳星座 · ${s.symbol} ${s.name}'));
+  buf.writeln('${s.element.label}象 · ${s.modality.label}星座 · 守护星${s.ruler},'
+      '太阳位于本宫 ${p.sunDegreeInSign.toStringAsFixed(1)}°。');
+  buf.writeln('${s.element.label}象的核心是${s.element.keywords};'
+      '${s.modality.label}星座擅长${s.modality.keywords}。\n');
+  if (p.nearCusp) {
+    buf.writeln('> 出生在换宫日附近(距${p.cuspNeighbour!.name}边界不到 1°),'
+        '两个星座的特质可能兼而有之。\n');
+  }
+
+  buf.writeln(_section('性格画像'));
+  buf.writeln('关键词:${s.keywords.join('、')}');
+  buf.writeln('- 优势:${s.strengths.join('、')}');
+  buf.writeln('- 需留意:${s.weaknesses.join('、')}\n');
+
+  buf.writeln(_section('上升星座'));
+  if (p.rising == null) {
+    buf.writeln('未提供出生地经纬度,无法推算上升星座。\n');
+  } else {
+    final r = p.rising!;
+    buf.writeln('${r.symbol} ${r.name}(${r.element.label}象)。${r.risingTrait}。');
+    if (r.element != s.element) {
+      buf.writeln('上升与太阳分属${r.element.label}象和${s.element.label}象,'
+          '外在表现与内在动力有落差——别人眼里的你和你眼里的自己不太一样。');
+    } else {
+      buf.writeln('上升与太阳同属${s.element.label}象,内外一致,别人看到的和你感受到的基本相同。');
+    }
+    buf.writeln('(上升星座每两小时换一个,依赖准确的出生时间。)\n');
+  }
+
+  if (chart != null) {
+    buf.writeln(_section('与八字对照'));
+    buf.writeln('八字日主${chart.dayMasterName}${chart.dayMaster.label},'
+        '${chart.elements.strength.label};太阳星座属${s.element.label}象。');
+    buf.writeln('五行讲的是生克平衡,四元素讲的是气质倾向,两套体系不能直接换算,'
+        '但可以互为参照:若两边都指向同一种性情,那大概是相当稳定的特质。\n');
+  }
+
+  if (match != null) {
+    buf.writeln(_section('配对 · ${match.a.symbol}${match.a.name} × ${match.b.symbol}${match.b.name}'));
+    buf.writeln('**${match.summary}**(${match.score} 分)');
+    for (final r in match.reasons) {
+      buf.writeln('- $r');
+    }
+    buf.writeln();
+  } else {
+    final best = bestMatchesFor(s);
+    buf.writeln(_section('合拍的星座'));
+    buf.writeln(best.map((b) => '${b.symbol}${b.name}').join('、'));
+    buf.writeln();
+  }
+
+  buf.writeln(_section('小贴士'));
+  buf.writeln('幸运色 ${s.luckyColor} · 幸运数字 ${s.luckyNumbers.join('、')}');
 
   return buf.toString() + _localFooter;
 }

@@ -38,8 +38,8 @@ class ProfileStore {
   Future<void> saveActiveIndex(int i) async =>
       (await SharedPreferences.getInstance()).setInt(_kActive, i);
 
-  Future<String> loadServerUrl() async =>
-      (await SharedPreferences.getInstance()).getString(_kServer) ?? 'http://localhost:8787';
+  Future<String> loadServerUrl(String fallback) async =>
+      (await SharedPreferences.getInstance()).getString(_kServer) ?? fallback;
 
   Future<void> saveServerUrl(String url) async =>
       (await SharedPreferences.getInstance()).setString(_kServer, url);

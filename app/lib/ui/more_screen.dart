@@ -6,6 +6,7 @@ import 'marriage_screen.dart';
 import 'naming_screen.dart';
 import 'settings_screen.dart';
 import 'vision_screen.dart';
+import 'zodiac_screen.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -21,7 +22,8 @@ class MoreScreen extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.symmetric(vertical: 8),
             children: [
-              _tile(context, Icons.favorite_outline, '合婚', '两人八字六维匹配', const MarriageScreen()),
+              _tile(context, Icons.star_border, '星座', '太阳星座 · 上升星座 · 配对', const ZodiacScreen()),
+              _tile(context, Icons.favorite_outline, '合婚', '两人八字六维匹配 · 星座配对', const MarriageScreen()),
               _tile(context, Icons.text_fields, '姓名测试', '五格剖象 · 三才 · 八字补益', const NamingScreen()),
               _tile(context, Icons.back_hand_outlined, '手相 AI', '照片仅在本机分析', const VisionScreen(mode: VisionMode.palm)),
               _tile(context, Icons.face_outlined, '面相 AI', '三停五眼 · 十二宫', const VisionScreen(mode: VisionMode.face)),
