@@ -15,6 +15,7 @@ import 'almanac_screen.dart';
 import 'annual_screen.dart';
 import 'marriage_screen.dart';
 import 'naming_screen.dart';
+import 'settings_screen.dart';
 import 'theme.dart';
 import 'vision_screen.dart';
 import 'widgets/ai_reading_card.dart';
@@ -65,6 +66,11 @@ class TodayScreen extends StatelessWidget {
         title: Text(s.greeting(chart.input.name)),
         actions: [
           IconButton(tooltip: s.shareCard, icon: const Icon(Icons.ios_share), onPressed: () => showShareCard(context, chart, zodiac)),
+          IconButton(
+            tooltip: s.settings,
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+          ),
         ],
       ),
       body: Center(
@@ -138,6 +144,30 @@ class TodayScreen extends StatelessWidget {
                           for (final k in today.keywords) Chip(label: Text('#${s.text(k)}')),
                         ],
                       ),
+                      const Divider(height: 24),
+                      // 人设一行,并进主卡;点击出分享海报
+                      InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () => showShareCard(context, chart, zodiac),
+                        child: Row(
+                          children: [
+                            Text(s.en ? stemPinyin[chart.dayStem] : chart.dayMasterName,
+                                style: TextStyle(fontSize: s.en ? 16 : 26, fontWeight: FontWeight.w700, color: elementColor[chart.dayMaster.label])),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('${s.personaLabel} · ${s.en ? personaEn.image : s.text(persona.image)} × ${s.term(chart.elements.strength.label)}',
+                                      style: theme.textTheme.titleSmall),
+                                  Text(s.en ? personaEn.traits : s.text(persona.traits.join(' · ')), style: theme.textTheme.bodySmall),
+                                ],
+                              ),
+                            ),
+                            Icon(Icons.ios_share, size: 18, color: theme.colorScheme.outline),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -164,18 +194,6 @@ class TodayScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-
-              // ---------- 人设 ----------
-              Card(
-                child: ListTile(
-                  leading: Text(s.en ? stemPinyin[chart.dayStem] : chart.dayMasterName,
-                      style: TextStyle(fontSize: s.en ? 18 : 30, fontWeight: FontWeight.w700, color: elementColor[chart.dayMaster.label])),
-                  title: Text('${s.personaLabel} · ${s.en ? personaEn.image : s.text(persona.image)} × ${s.term(chart.elements.strength.label)}'),
-                  subtitle: Text(s.en ? personaEn.traits : s.text(persona.traits.join(' · ')), style: theme.textTheme.bodySmall),
-                  trailing: const Icon(Icons.ios_share, size: 18),
-                  onTap: () => showShareCard(context, chart, zodiac),
-                ),
-              ),
 
               // ---------- 今日宜忌 + 吉时 ----------
               Card(

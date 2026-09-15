@@ -6,7 +6,6 @@ import '../services/app_state.dart';
 import 'almanac_screen.dart';
 import 'birth_input_screen.dart';
 import 'chart_screen.dart';
-import 'more_screen.dart';
 import 'today_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -27,8 +26,8 @@ class _HomeScreenState extends State<HomeScreen> {
       return const BirthInputScreen(firstRun: true);
     }
 
-    // 首页是"今日":打开就是今天的分数与提醒;命盘是查阅工具放第二
-    const pages = [TodayScreen(), ChartScreen(), AlmanacScreen(), MoreScreen()];
+    // 三个栏目:今日(首页 + 所有功能入口)、命盘、黄历;设置在今日页右上角
+    const pages = [TodayScreen(), ChartScreen(), AlmanacScreen()];
     final wide = MediaQuery.sizeOf(context).width >= 800;
 
     if (wide) {
@@ -47,7 +46,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 NavigationRailDestination(icon: const Icon(Icons.wb_sunny_outlined), selectedIcon: const Icon(Icons.wb_sunny), label: Text(s.navToday)),
                 NavigationRailDestination(icon: const Icon(Icons.grid_view_outlined), selectedIcon: const Icon(Icons.grid_view), label: Text(s.navChart)),
                 NavigationRailDestination(icon: const Icon(Icons.calendar_month_outlined), selectedIcon: const Icon(Icons.calendar_month), label: Text(s.navAlmanac)),
-                NavigationRailDestination(icon: const Icon(Icons.more_horiz), selectedIcon: const Icon(Icons.more_horiz), label: Text(s.navMore)),
               ],
             ),
             const VerticalDivider(width: 1),
@@ -66,7 +64,6 @@ class _HomeScreenState extends State<HomeScreen> {
           NavigationDestination(icon: const Icon(Icons.wb_sunny_outlined), selectedIcon: const Icon(Icons.wb_sunny), label: s.navToday),
           NavigationDestination(icon: const Icon(Icons.grid_view_outlined), selectedIcon: const Icon(Icons.grid_view), label: s.navChart),
           NavigationDestination(icon: const Icon(Icons.calendar_month_outlined), selectedIcon: const Icon(Icons.calendar_month), label: s.navAlmanac),
-          NavigationDestination(icon: const Icon(Icons.more_horiz), label: s.navMore),
         ],
       ),
     );
