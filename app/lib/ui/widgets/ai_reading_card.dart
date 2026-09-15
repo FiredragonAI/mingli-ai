@@ -179,8 +179,18 @@ class _AiReadingCardState extends State<AiReadingCard> {
                 selectable: true,
                 styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
                   p: theme.textTheme.bodyMedium?.copyWith(height: 1.7),
-                  h2: theme.textTheme.titleMedium,
+                  h1: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, height: 1.3),
+                  h1Padding: const EdgeInsets.only(bottom: 4),
+                  h2: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                  h2Padding: const EdgeInsets.only(top: 10, bottom: 2),
                   h3: theme.textTheme.titleSmall,
+                  blockquoteDecoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border(left: BorderSide(color: theme.colorScheme.primary, width: 3)),
+                  ),
+                  blockquotePadding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                  blockquote: theme.textTheme.bodyMedium?.copyWith(fontStyle: FontStyle.normal, height: 1.6),
                 ),
               )
             else if (_loading)

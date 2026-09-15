@@ -9,9 +9,11 @@ import '../bazi/five_elements.dart';
 import '../bazi/relations.dart';
 import '../bazi/ten_gods.dart';
 import '../calendar/sexagenary.dart';
+import '../interpret/voice.dart';
 
-class MarriageDimension {
+class MarriageDimension implements DimensionLike {
   MarriageDimension(this.name, this.weight) : score = 60;
+  @override
   final String name;
   final double weight;
   int score;
@@ -22,6 +24,7 @@ class MarriageDimension {
     reasons.add('${delta >= 0 ? '+' : ''}$delta $why');
   }
 
+  @override
   int get clamped => score.clamp(0, 100);
 
   Map<String, dynamic> toJson() => {
@@ -31,7 +34,7 @@ class MarriageDimension {
       };
 }
 
-class MarriageResult {
+class MarriageResult implements MarriageResultLike {
   const MarriageResult({
     required this.a,
     required this.b,
@@ -42,10 +45,14 @@ class MarriageResult {
     required this.cautions,
   });
 
+  @override
   final BaziChart a;
+  @override
   final BaziChart b;
   final int overall;
+  @override
   final String grade;
+  @override
   final List<MarriageDimension> dimensions;
   final List<String> highlights;
   final List<String> cautions;

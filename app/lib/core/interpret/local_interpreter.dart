@@ -28,6 +28,7 @@ import '../vision/face_features.dart';
 import '../vision/palm_features.dart';
 import '../zodiac/western_zodiac.dart';
 import 'plain_language.dart';
+import 'voice.dart';
 
 const _localFooter = '\n\n---\n*以上内容由本机规则引擎生成,未连接任何云端服务;命理是看待性格与节律的一种传统视角,仅供娱乐参考。*';
 
@@ -44,8 +45,12 @@ String localInterpretBazi(BaziChart c) {
   final strength = strengthPlain(e.strength);
   final buf = StringBuffer();
 
+  // ---- 标题 + 金句 ----
+  buf.writeln('# ${baziHeadline(c)}\n');
+  buf.writeln(_quote(baziQuote(c)));
+
   // ---- 开场:一句话人设 ----
-  buf.writeln(_h('先说人话:你是哪种人'));
+  buf.writeln(_h('🪞 先说人话:你是哪种人'));
   buf.writeln('${c.input.gender.chartLabel},八字 **${c.summaryLine}**,日主 **${c.dayMasterName}${c.dayMaster.label}**'
       '(日主=出生那天的天干,代表你本人)。');
   buf.writeln('${c.dayMasterName}${c.dayMaster.label}的物象是**${persona.image}**——${persona.plain}');
@@ -60,7 +65,7 @@ String localInterpretBazi(BaziChart c) {
   }
 
   // ---- 四柱 ----
-  buf.writeln(_h('四根柱子各管什么'));
+  buf.writeln(_h('🏛 四根柱子各管什么'));
   buf.writeln('八字就是四组"天干+地支",每组管人生一段:');
   const scope = ['年柱=祖辈与童年、你给人的第一印象', '月柱=父母兄弟与青年、你的事业舞台', '日柱=你自己与配偶、婚姻宫', '时柱=子女与晚年、你的内心底色'];
   for (var i = 0; i < 4; i++) {
@@ -74,7 +79,7 @@ String localInterpretBazi(BaziChart c) {
   buf.writeln();
 
   // ---- 五行 ----
-  buf.writeln(_h('五行体检报告'));
+  buf.writeln(_h('🩺 五行体检报告'));
   final pct = Element.values.map((el) => '${el.label} ${e.percentages[el]!.round()}%').join(' · ');
   buf.writeln('$pct\n');
   buf.writeln('专业判定过程(每条都是打分依据):');
@@ -92,7 +97,7 @@ String localInterpretBazi(BaziChart c) {
   // ---- 喜用 ----
   final primary = e.primaryUsefulGod;
   final adv = elementAdvice[primary]!;
-  buf.writeln(_h('你的"补品"和"过敏原"'));
+  buf.writeln(_h('💊 你的"补品"和"过敏原"'));
   buf.writeln('用神(对你最有帮助的五行)是 **${primary.label}**;喜用 ${e.favorable.map((x) => x.label).join('、')},'
       '忌 ${e.unfavorable.map((x) => x.label).join('、')}。');
   if (e.climateHint.isNotEmpty) buf.writeln('${e.climateHint}。');
@@ -107,7 +112,7 @@ String localInterpretBazi(BaziChart c) {
       '${elementAdvice[avoid]!.industries.split('、').take(2).join('、')}这类事可以做,但别把全部筹码压上去。\n');
 
   // ---- 十神画像 ----
-  buf.writeln(_h('性格拆解:命盘里的几位"配角"'));
+  buf.writeln(_h('🎭 性格拆解:命盘里的几位"配角"'));
   final gods = <TenGod, int>{};
   for (final p in c.pillars) {
     if (p.stemGod != null) gods[p.stemGod!] = (gods[p.stemGod!] ?? 0) + 2;
@@ -129,7 +134,7 @@ String localInterpretBazi(BaziChart c) {
 
   // ---- 刑冲合会 ----
   if (c.interactions.isNotEmpty) {
-    buf.writeln(_h('字与字之间的化学反应'));
+    buf.writeln(_h('⚗️ 字与字之间的化学反应'));
     buf.writeln('地支之间会"合"(抱团、顺)、"冲"(对撞、变动)、"刑""害"(别扭、消耗)。你的盘里有:');
     for (final i in c.interactions) {
       buf.writeln('- ${i.description}${i.kind.isHarmonious ? ' —— 加分项,像两块磁铁自然贴合' : ' —— 摩擦项,像两把钥匙插同一把锁,需要外力调和'}');
@@ -139,7 +144,7 @@ String localInterpretBazi(BaziChart c) {
 
   // ---- 神煞 ----
   if (c.shenSha.isNotEmpty) {
-    buf.writeln(_h('命盘上的小徽章:神煞'));
+    buf.writeln(_h('🏷 命盘上的小徽章:神煞'));
     buf.writeln('神煞是命盘里的特殊标记,有吉有凶,像游戏角色身上的徽章——有,不代表一定发生;没有,也不代表缺什么。');
     for (final s in c.shenSha) {
       final tag = switch (s.nature) {
@@ -157,7 +162,7 @@ String localInterpretBazi(BaziChart c) {
   }
 
   // ---- 大运 ----
-  buf.writeln(_h('人生天气预报:大运'));
+  buf.writeln(_h('🌤 人生天气预报:大运'));
   buf.writeln('大运是十年换一次的大环境,流年是每一年的小天气。你的大运${c.luck.direction},${c.luck.startDescription}。');
   final now = DateTime.now().year;
   final cur = c.luck.cycleForYear(now);
@@ -190,15 +195,24 @@ String localInterpretBazi(BaziChart c) {
   }
   buf.writeln();
 
+  // ---- 洞察 ----
+  final insights = baziInsights(c);
+  if (insights.isNotEmpty) {
+    buf.writeln(_h('👀 你可能没意识到的${['一', '两', '三'][insights.length - 1]}件事'));
+    for (var i = 0; i < insights.length; i++) {
+      buf.writeln('${i + 1}. ${insights[i]}\n');
+    }
+  }
+
   // ---- 小结 ----
-  buf.writeln(_h('一句话版'));
+  buf.writeln(_h('✍️ 一句话版'));
   buf.writeln('${persona.image}命,${e.strength.label},靠${primary.label}吃饭,'
       '${e.strength.isStrongSide ? '多输出、多担事' : e.strength.isWeakSide ? '多借力、多学习' : '顺势而为'}。'
       '${persona.tip}');
   buf.writeln();
   buf.writeln('胎元 ${c.taiYuan.name} · 命宫 ${c.mingGong.name} · 身宫 ${c.shenGong.name}(进阶参数,一般看看就好)\n');
 
-  buf.writeln(_h('术语小词典'));
+  buf.writeln(_h('📖 术语小词典'));
   for (final g in baziGlossary) {
     buf.writeln('- **${g.term}**:${g.plain}(${g.fun})');
   }
@@ -241,15 +255,16 @@ String localInterpretDaily(BaziChart c, DailyFortune f) {
   final theme = tenGodGroupPlain[f.theme.group]!;
   final buf = StringBuffer();
 
-  buf.writeln(_h('${f.month} 月 ${f.day} 日 · ${f.dayPillar.name}日 · ${sp.term}'));
-  buf.writeln('综合 **${f.overall}** 分。${sp.plain}');
+  buf.writeln('# ${dailyHeadline(c, f)}\n');
+  buf.writeln(_quote(dailyQuote(c, f)));
+  buf.writeln('${f.month} 月 ${f.day} 日 · ${f.dayPillar.name}日 · **${sp.term}** · 综合 **${f.overall}** 分。${sp.plain}');
   buf.writeln(_quote(sp.fun));
 
-  buf.writeln(_h('今天的主题:${theme.term}'));
+  buf.writeln(_h('🎯 今天的主题:${theme.term}'));
   buf.writeln('今天的天干${f.dayPillar.stemName}对你来说是**${f.theme.label}**(${tenGodPlain[f.theme]!.plain})。${theme.plain}');
   buf.writeln(_quote(theme.fun));
 
-  buf.writeln(_h('四项分数怎么看'));
+  buf.writeln(_h('📊 四项分数怎么看'));
   final items = {'事业': f.career, '财运': f.wealth, '感情': f.love, '健康': f.health};
   final best = items.entries.reduce((a, b) => a.value >= b.value ? a : b);
   final worst = items.entries.reduce((a, b) => a.value <= b.value ? a : b);
@@ -257,13 +272,18 @@ String localInterpretDaily(BaziChart c, DailyFortune f) {
   buf.writeln('最亮的是**${best.key}**(${best.value}),把重要的${best.key}相关的事排在今天;'
       '最需要留意的是**${worst.key}**(${worst.value}),${_worstAdvice(worst.key)}\n');
 
-  buf.writeln(_h('为什么是这个分(依据)'));
+  buf.writeln(_h('🚫 今天别做的一件事'));
+  buf.writeln('**${dailyDont(c, f)}**\n');
+  buf.writeln(_h('✅ 今天去做的一件小事'));
+  buf.writeln('**${dailyDo(c, f)}**\n');
+
+  buf.writeln(_h('🧾 为什么是这个分(依据)'));
   for (final r in f.factors) {
     buf.writeln('- $r');
   }
   buf.writeln();
 
-  buf.writeln(_h('今日小抄'));
+  buf.writeln(_h('🍀 今日小抄'));
   buf.writeln('幸运色 **${f.luckyColor}** · 幸运数字 **${f.luckyNumbers.join('、')}** · 吉方 **${f.luckyDirection}**');
   if (f.keywords.isNotEmpty) buf.writeln('关键词:${f.keywords.map((k) => '#$k').join(' ')}');
   buf.writeln();
@@ -301,7 +321,9 @@ String localInterpretAnnual(BaziChart c, AnnualFortune a) {
     _ => '蓄力的一年。看起来没动,其实是竹子在地下长根的那几年——熬过去,后面几年蹿得快。',
   };
 
-  buf.writeln(_h('${a.year} 年 · ${a.yearPillar.name}年 · ${a.nominalAge} 虚岁 · ${a.grade}'));
+  buf.writeln('# ${annualHeadline(c, a)}\n');
+  buf.writeln(_quote(annualQuote(c, a)));
+  buf.writeln(_h('📅 ${a.year} 年 · ${a.yearPillar.name}年 · ${a.nominalAge} 虚岁 · ${a.grade}'));
   buf.writeln('综合 **${a.overall}** 分。$gradeFun');
   if (a.luckPillar != null) {
     buf.writeln('今年处在 **${a.luckPillar!.pillar.name}** 大运(${a.luckPillar!.ageRange})的第 ${a.year - a.luckPillar!.startYear + 1} 年。');
@@ -309,7 +331,7 @@ String localInterpretAnnual(BaziChart c, AnnualFortune a) {
   buf.writeln();
 
   if (a.taiSui.isNotEmpty) {
-    buf.writeln(_h(a.isOffendingTaiSui ? '今年犯太岁' : '今年合太岁'));
+    buf.writeln(_h(a.isOffendingTaiSui ? '⚠️ 今年犯太岁' : '🤝 今年合太岁'));
     for (final t in a.taiSui) {
       buf.writeln('- **${t.label}**:${t.meaning}');
     }
@@ -321,18 +343,18 @@ String localInterpretAnnual(BaziChart c, AnnualFortune a) {
     }
   }
 
-  buf.writeln(_h('全年主题:${theme.term}'));
+  buf.writeln(_h('🎯 全年主题:${theme.term}'));
   buf.writeln('流年天干${a.yearPillar.stemName}对你是**${a.theme.label}**(${tenGodPlain[a.theme]!.plain})。${theme.plain}');
   buf.writeln(_quote(theme.fun));
 
   final items = {'事业': a.career, '财运': a.wealth, '感情': a.love, '健康': a.health};
   final best = items.entries.reduce((x, y) => x.value >= y.value ? x : y);
   final worst = items.entries.reduce((x, y) => x.value <= y.value ? x : y);
-  buf.writeln(_h('四项运势'));
+  buf.writeln(_h('📊 四项运势'));
   buf.writeln(items.entries.map((x) => '${x.key} ${x.value}').join(' · '));
   buf.writeln('今年最亮的是**${best.key}**(${best.value}),重头戏往这里放;最需要经营的是**${worst.key}**(${worst.value}),${_annualWorstAdvice(worst.key)}\n');
 
-  buf.writeln(_h('十二个月的小天气'));
+  buf.writeln(_h('🗓 十二个月的小天气'));
   buf.writeln('按节气月(立春起算)拆开看,每月的干支和你的命局打个照面:');
   for (final m in a.months) {
     final tag = a.bestMonths.contains(m.index) ? ' ⭐' : a.cautionMonths.contains(m.index) ? ' ⚠' : '';
@@ -342,13 +364,20 @@ String localInterpretAnnual(BaziChart c, AnnualFortune a) {
   buf.writeln('最顺的两个月:**${a.bestMonths.map((i) => '${a.months[i].pillar.name}月(约${monthApproxLabel(i)})').join('、')}**,重要的事往这里排;'
       '需要收着点的:**${a.cautionMonths.map((i) => '${a.months[i].pillar.name}月(约${monthApproxLabel(i)})').join('、')}**。\n');
 
-  buf.writeln(_h('为什么是这个分(依据)'));
+  final donts = annualDonts(c, a);
+  buf.writeln(_h('🚫 今年别做的${['一', '两', '三'][donts.length - 1]}件事'));
+  for (var i = 0; i < donts.length; i++) {
+    buf.writeln('${i + 1}. ${donts[i]}');
+  }
+  buf.writeln();
+
+  buf.writeln(_h('🧾 为什么是这个分(依据)'));
   for (final f in a.factors) {
     buf.writeln('- $f');
   }
   buf.writeln();
 
-  buf.writeln(_h('一句话版'));
+  buf.writeln(_h('✍️ 一句话版'));
   buf.writeln('${a.year} 年是你的"${a.grade}",主题是${a.theme.group},'
       '${a.isOffendingTaiSui ? '带着犯太岁的提醒,' : ''}'
       '${a.overall >= 65 ? '该出手时别犹豫' : a.overall >= 50 ? '按部就班就是最好的策略' : '守住基本盘,把力气留给明年'}。'
@@ -373,21 +402,27 @@ String localInterpretMarriage(MarriageResult m) {
   final pa = stemPersonas[m.a.dayStem], pb = stemPersonas[m.b.dayStem];
   final buf = StringBuffer();
 
-  buf.writeln(_h('总评:${m.grade} · ${m.overall} 分'));
+  buf.writeln('# ${marriageHeadline(m)}\n');
+  buf.writeln(_quote('这对组合的名字:**${couplePairName(m.a, m.b)}**'));
+  buf.writeln(_h('💯 总评:${m.grade} · ${m.overall} 分'));
   buf.writeln('${m.a.input.gender.chartLabel}方 ${m.a.summaryLine}(${m.a.dayMasterName}${m.a.dayMaster.label},${pa.image}) × '
       '${m.b.input.gender.chartLabel}方 ${m.b.summaryLine}(${m.b.dayMasterName}${m.b.dayMaster.label},${pb.image})');
   buf.writeln(gp.plain);
   buf.writeln(_quote(gp.fun));
 
-  buf.writeln(_h('两个人放在一起是什么画面'));
+  buf.writeln(_h('🎬 两个人放在一起是什么画面'));
   buf.writeln('一个是**${pa.image}**(${pa.traits.join('、')}),一个是**${pb.image}**(${pb.traits.join('、')})。');
   buf.writeln(_elementPairFun(m.a.dayMaster, m.b.dayMaster));
+  buf.writeln();
+
+  buf.writeln(_h('🔮 吵架预报'));
+  buf.writeln(marriageFightForecast(m));
   buf.writeln();
 
   if (m.highlights.isNotEmpty) buf.writeln('**加分项**:${m.highlights.join('、')}\n');
   if (m.cautions.isNotEmpty) buf.writeln('**磨合点**:${m.cautions.join('、')}\n');
 
-  buf.writeln(_h('六个维度逐条说'));
+  buf.writeln(_h('📐 六个维度逐条说'));
   for (final d in m.dimensions) {
     final p = marriageDimensionPlain[d.name];
     buf.writeln('**${d.name} ${d.clamped} 分**(权重 ${(d.weight * 100).round()}%)'
@@ -399,7 +434,7 @@ String localInterpretMarriage(MarriageResult m) {
     buf.writeln();
   }
 
-  buf.writeln(_h('相处建议(可执行版)'));
+  buf.writeln(_h('🛠 相处建议(可执行版)'));
   final lowest = m.dimensions.reduce((a, b) => a.clamped <= b.clamped ? a : b);
   buf.writeln('1. 最低分是**${lowest.name}**,${_dimAdvice(lowest.name)}');
   buf.writeln('2. ${pa.tip}(给${m.a.input.gender.label}方)');
@@ -436,15 +471,12 @@ String _dimAdvice(String name) => switch (name) {
 
 String localInterpretName(NameAnalysis n) {
   final buf = StringBuffer();
-  buf.writeln(_h('${n.fullName} · ${n.overallScore} 分'));
-  buf.writeln('笔画(康熙):${n.strokes.join(' · ')}。${n.summary}');
-  buf.writeln(_quote(n.overallScore >= 80
-      ? '这名字在数理上是"好学生"型,家长当年没少翻字典。'
-      : n.overallScore >= 65
-          ? '中上水平,像一件基础款——不惊艳但耐穿。'
-          : '数理上有几处小疙瘩,不过名字是拿来叫的,不是拿来考试的。'));
+  buf.writeln('# ${nameHeadline(n.overallScore, n.fullName)}\n');
+  buf.writeln(_quote(nameQuote(n.overallScore)));
+  buf.writeln(_h('💯 ${n.overallScore} 分'));
+  buf.writeln('笔画(康熙):${n.strokes.join(' · ')}。${n.summary}\n');
 
-  buf.writeln(_h('五格是什么'));
+  buf.writeln(_h('🧩 五格是什么'));
   buf.writeln('五格剖象把名字拆成五个数,每个数对应人生一块。先看人格和总格,其他是配菜。');
   for (final g in [n.ren, n.zong, n.di, n.wai, n.tian]) {
     final p = gridPlain[g.name]!;
@@ -458,7 +490,7 @@ String localInterpretName(NameAnalysis n) {
   }
   buf.writeln();
 
-  buf.writeln(_h('三才:天·人·地怎么搭'));
+  buf.writeln(_h('🏗 三才:天·人·地怎么搭'));
   buf.writeln('三才 **${n.sanCaiText}**,${n.sanCaiScore} 分。${n.sanCaiComment}');
   buf.writeln(_quote(n.sanCaiScore >= 70
       ? '三层楼一层托一层,结构稳。'
@@ -502,7 +534,9 @@ String localInterpretAlmanac(AlmanacDay a, {BaziChart? chart}) {
   final zs = zhiShenPlain[a.zhiShen];
   final buf = StringBuffer();
 
-  buf.writeln(_h('${a.dateText} · ${a.ganZhiText}'));
+  buf.writeln('# ${_dayVerdict(a).replaceAll('*', '')}\n');
+  buf.writeln(_quote(jc?.fun ?? zs?.fun ?? '黄历是古人的日程助手,今天它给你的建议如下。'));
+  buf.writeln(_h('📅 ${a.dateText} · ${a.ganZhiText}'));
   buf.writeln('${a.lunar} · ${a.weekdayName} · ${a.xiu}');
   if (a.solarTerm != null) buf.writeln('今天交**${a.solarTerm!.name}**——节气换挡,身体和日程都给点缓冲。');
   buf.writeln();
@@ -574,12 +608,11 @@ String localInterpretPalm(PalmFeatures p) {
   final hs = handShapePlain[p.handShape];
   final buf = StringBuffer();
 
-  buf.writeln(_h('${p.hand} · ${p.handShape}'));
+  buf.writeln('# ${hs?.fun ?? '${p.hand} · ${p.handShape}'}\n');
+  buf.writeln(_quote(pick(palmQuotes, p.lines.length + p.thumbAngle.round())));
+  buf.writeln(_h('✋ ${p.hand} · ${p.handShape}'));
   buf.writeln('掌长/掌宽 ${p.palmAspect.toStringAsFixed(2)} · 中指/掌长 ${p.fingerToPalm.toStringAsFixed(2)} · 拇指张角 ${p.thumbAngle.toStringAsFixed(0)}°');
-  if (hs != null) {
-    buf.writeln('${hs.term}:${hs.plain}');
-    buf.writeln(_quote(hs.fun));
-  }
+  if (hs != null) buf.writeln('${hs.term}:${hs.plain}');
 
   buf.writeln(_h('三大主线(掌纹里的"三条主干道")'));
   buf.writeln('生命线看精力与生活节奏,智慧线看思维方式,感情线看情感表达——**都不是看寿命和结果,是看风格**。');
@@ -614,11 +647,10 @@ String localInterpretFace(FaceFeatures f) {
   final buf = StringBuffer();
   final courts = f.threeCourts.map((c) => (c * 100).round()).toList();
 
-  buf.writeln(_h('${f.faceShape} · 对称度 ${(f.symmetry * 100).round()}%'));
-  if (fs != null) {
-    buf.writeln('${fs.term}:${fs.plain}');
-    buf.writeln(_quote(fs.fun));
-  }
+  buf.writeln('# ${fs?.fun ?? f.faceShape}\n');
+  buf.writeln(_quote(pick(faceQuotes, (f.symmetry * 100).round() + courts.first)));
+  buf.writeln(_h('🙂 ${f.faceShape} · 对称度 ${(f.symmetry * 100).round()}%'));
+  if (fs != null) buf.writeln('${fs.term}:${fs.plain}');
 
   buf.writeln(_h('三停五眼:面相的"标尺"'));
   buf.writeln('三停把脸从上到下分三段:上停(发际到眉)看早年与思虑,中停(眉到鼻底)看中年与行动,下停(鼻底到下巴)看晚年与意志。');
@@ -651,7 +683,9 @@ String localInterpretZodiac(ZodiacProfile p, {ZodiacMatch? match, BaziChart? cha
   final s = p.sun;
   final buf = StringBuffer();
 
-  buf.writeln(_h('太阳星座 · ${s.symbol} ${s.name}'));
+  buf.writeln('# ${s.name}:${s.keywords.join('、')},到骨子里\n');
+  buf.writeln(_quote(zodiacQuote(s.name, s.weaknesses.first, s.strengths.first)));
+  buf.writeln(_h('☀️ 太阳星座 · ${s.symbol} ${s.name}'));
   buf.writeln('${s.element.label}象 · ${s.modality.label}星座 · 守护星${s.ruler},太阳位于本宫 ${p.sunDegreeInSign.toStringAsFixed(1)}°。');
   buf.writeln('太阳星座讲的是你的**内在驱动**——什么事让你觉得"活着"。'
       '${s.element.label}象的核心是${s.element.keywords};${s.modality.label}星座擅长${s.modality.keywords}。');
@@ -666,7 +700,7 @@ String localInterpretZodiac(ZodiacProfile p, {ZodiacMatch? match, BaziChart? cha
   buf.writeln('- 优势:${s.strengths.join('、')}');
   buf.writeln('- 需留意:${s.weaknesses.join('、')}——优点用过头就是它。\n');
 
-  buf.writeln(_h('上升星座:别人眼里的你'));
+  buf.writeln(_h('🌅 上升星座:别人眼里的你'));
   if (p.rising == null) {
     buf.writeln('未提供出生地经纬度,无法推算上升星座。');
   } else {

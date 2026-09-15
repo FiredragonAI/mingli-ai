@@ -87,6 +87,84 @@ const List<_Persona> _stemPersona = [
       'Ideas kept too deep never reach anyone; say it plainly sometimes.'),
 ];
 
+// ------------------------------------------------------------------ voice (headline / quote / do / don't)
+
+T _pick<T>(List<T> pool, int seed) => pool[seed.abs() % pool.length];
+int _seed(BaziChart c) => c.dayPillar.stemBranch.index * 7 + c.monthPillar.stemBranch.index;
+
+String _baziHeadlineEn(BaziChart c) {
+  final img = _stemPersona[c.dayStem].image;
+  final st = c.elements.strength;
+  final pool = st.isStrongSide
+      ? ['$img — plenty of power; the homework is where to aim it', 'You\'re the "I\'ll do it" person, and it\'s usually done', 'Strong isn\'t the same as "only able to carry"']
+      : st.isWeakSide
+          ? ['Not the tallest $img, but you know where the light is', 'Your talent isn\'t pushing through — it\'s finding the socket', 'Soft on the outside, the best at bending on the inside']
+          : ['$img, just right — the hard part is staying just right', 'A balanced chart, most at risk of finding itself boring'];
+  return _pick(pool, _seed(c));
+}
+
+String _dailyHeadlineEn(BaziChart c, DailyFortune f) {
+  final seed = _seed(c) + f.dayPillar.index;
+  final good = f.overall >= 70, low = f.overall < 50;
+  final pool = switch (f.theme.group) {
+    '财星' => good ? ['Your wallet has a feeling today', 'A day to negotiate'] : low ? ['Guard the wallet, let the rest go', 'Wealth day — don\'t get greedy'] : ['A day for real numbers'],
+    '官杀' => good ? ['Reliable pays today', 'The boss will call — pick up'] : low ? ['Don\'t talk back today', 'Rules day — stay inside the lines'] : ['Responsibility day, follow the process'],
+    '印星' => good ? ['Someone wants to teach you today', 'Charging day — find the socket'] : low ? ['A day for reading, not deciding', 'Rest day — don\'t push'] : ['A quiet day to learn'],
+    '食伤' => good ? ['Your brain is fizzing today', 'Say the idea out loud'] : low ? ['Fast mouth, slow down', 'Ideas ≠ promises today'] : ['Expression day — be clear'],
+    _ => good ? ['Team-up day', 'Friends day — don\'t grab the bill'] : low ? ['Don\'t lend to friends today', 'Crowds: fewer is better'] : ['People in, people out'],
+  };
+  return _pick(pool, seed);
+}
+
+String _dailyQuoteEn(BaziChart c, DailyFortune f) {
+  final seed = _seed(c) + f.dayPillar.index * 3;
+  final pool = switch (f.theme.group) {
+    '财星' => ['Money comes: don\'t rush to spend. Money goes: don\'t rush to chase.', 'The most valuable word today is "specific".'],
+    '官杀' => ['Don\'t prove yourself today — finishing the job is the proof.', 'Pressure is theirs; the pace is yours.'],
+    '印星' => ['Listen to the end before you speak.', 'One question to a mentor beats an hour of scrolling.'],
+    '食伤' => ['Write the idea down; it dies in your head.', 'Let the brain go first; the mouth can follow.'],
+    _ => ['Don\'t carry all the damage alone today.', 'Friends are a resource — and an expense. Count both.'],
+  };
+  return _pick([...pool, if (f.overall >= 80) 'Green light. Don\'t waste it.', if (f.overall < 45) 'Low power mode: skip every decision you can.'], seed);
+}
+
+String _dailyDontEn(BaziChart c, DailyFortune f) {
+  final items = {'Career': f.career, 'Wealth': f.wealth, 'Love': f.love, 'Health': f.health};
+  final worst = items.entries.reduce((a, b) => a.value <= b.value ? a : b).key;
+  final pool = switch (worst) {
+    'Career' => ['Don\'t argue in the group chat.', 'Don\'t resign, ask for a raise, or pitch today.', 'Don\'t change a plan that\'s already set.'],
+    'Wealth' => ['Don\'t buy the thing that\'s been in your cart for three days.', 'Don\'t lend, don\'t borrow.', 'Don\'t check the investment account.'],
+    'Love' => ['Don\'t bring up old fights.', 'Don\'t text while upset.', 'Don\'t guess — ask.'],
+    _ => ['Don\'t stay up past midnight.', 'Don\'t swap lunch for coffee.', 'Don\'t sit two hours without standing.'],
+  };
+  return _pick(pool, _seed(c) + f.dayPillar.index * 5);
+}
+
+String _dailyDoEn(BaziChart c, DailyFortune f) {
+  final items = {'Career': f.career, 'Wealth': f.wealth, 'Love': f.love, 'Health': f.health};
+  final best = items.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
+  final a = _advice[c.elements.primaryUsefulGod]!;
+  final pool = switch (best) {
+    'Career' => ['Send the email you\'ve put off for a week.', 'Update your manager before they ask.', 'Write tomorrow\'s three tasks before you log off.'],
+    'Wealth' => ['Log every expense today.', 'Send one payment reminder.', 'Cancel one subscription.'],
+    'Love' => ['Message someone you haven\'t spoken to in months.', 'Say thank you in person.', 'Ten minutes tonight with the phone down.'],
+    _ => ['Walk twenty minutes, heading ${a.direction}.', 'Wear something ${a.colors.split(',').first}.', 'Sleep half an hour earlier.'],
+  };
+  return _pick(pool, _seed(c) + f.dayPillar.index * 11);
+}
+
+String _annualHeadlineEn(BaziChart c, AnnualFortune a) {
+  if (a.isOffendingTaiSui) return _pick(['Difficulty up one notch — so are the rewards', 'Tai Sui year: fasten the seatbelt, keep driving', 'This year\'s keyword is steady; everything else is a side dish'], _seed(c) + a.year);
+  final pool = switch (a.grade) {
+    '顺遂年' => ['Tailwind year — don\'t just enjoy it, use it', 'Escalator year: standing still still goes up'],
+    '稳中有进' => ['Not flashy, but you\'ll end richer than you started', 'A year for deep roots'],
+    '平年' => ['Cloudy year — bring an umbrella', 'No big drama; polish the small things'],
+    '守成年' => ['Low-power year: hold the base', 'Don\'t open new fronts; close the old ones'],
+    _ => ['Bamboo year: nothing above ground, everything below', 'Gather now, sprint later'],
+  };
+  return _pick(pool, _seed(c) + a.year);
+}
+
 /// Persona for the shareable card and the dashboard one-liner.
 ({String image, String traits, String tip}) enStemPersona(int stem) {
   final p = _stemPersona[stem];
@@ -142,7 +220,9 @@ String enInterpretBazi(BaziChart c) {
   final p = _stemPersona[c.dayStem];
   final b = StringBuffer();
 
-  b.writeln(_h('In plain words: who you are'));
+  b.writeln('# ${_baziHeadlineEn(c)}\n');
+  b.writeln(_q('${p.image[0].toUpperCase()}${p.image.substring(1)}: ${p.tip}'));
+  b.writeln(_h('🪞 In plain words: who you are'));
   b.writeln('${_t(c.input.gender.chartLabel)}, Four Pillars **${summaryEn(c)}**, Day Master **${stemEn(c.dayStem)}** '
       '(the Day Master, 日主, is the stem of your birth day — it stands for you).');
   b.writeln('${stemPinyin[c.dayStem]} is **${p.image}** — ${p.plain}');
@@ -263,8 +343,9 @@ String enInterpretDaily(BaziChart c, DailyFortune f) {
               : f.overall >= 40
                   ? 'Caution — a low-battery day; fewer decisions, more tidying.'
                   : 'Hold — guard what you have and don\'t open new fronts.';
-  b.writeln(_h('${ymdEn(f.year, f.month, f.day)} · ${stemBranchEn(f.dayPillar)} day'));
-  b.writeln('Overall **${f.overall}**. $verdict\n');
+  b.writeln('# ${_dailyHeadlineEn(c, f)}\n');
+  b.writeln(_q(_dailyQuoteEn(c, f)));
+  b.writeln('${ymdEn(f.year, f.month, f.day)} · ${stemBranchEn(f.dayPillar)} day · Overall **${f.overall}**. $verdict\n');
 
   b.writeln(_h('Today\'s theme: ${_t(f.theme.label)}'));
   b.writeln('Today\'s stem ${stemPinyin[f.dayPillar.stem]} is your **${_t(f.theme.label)}** (${_godPlain[f.theme]}). ${_groupPlain[f.theme.group] ?? ''}\n');
@@ -275,6 +356,11 @@ String enInterpretDaily(BaziChart c, DailyFortune f) {
   b.writeln(_h('The four scores'));
   b.writeln(items.entries.map((x) => '${x.key} ${x.value}').join(' · '));
   b.writeln('Brightest: **${best.key}** (${best.value}) — schedule the important ${best.key.toLowerCase()} matters today. Watch: **${worst.key}** (${worst.value}).\n');
+
+  b.writeln(_h('🚫 One thing not to do today'));
+  b.writeln('**${_dailyDontEn(c, f)}**\n');
+  b.writeln(_h('✅ One small thing to do today'));
+  b.writeln('**${_dailyDoEn(c, f)}**\n');
 
   b.writeln(_h('Cheat sheet'));
   b.writeln('Lucky colour **${_t(f.luckyColor)}** · lucky numbers **${f.luckyNumbers.join(', ')}** · direction **${_t(f.luckyDirection)}**');
@@ -305,6 +391,10 @@ String enInterpretAnnual(BaziChart c, AnnualFortune a) {
     '守成年' => 'A holding year — low-power mode: keep what you have, dig roots, grow next year.',
     _ => 'A gathering year — like bamboo growing roots underground: quiet now, fast later.',
   };
+  b.writeln('# ${_annualHeadlineEn(c, a)}\n');
+  const approxQ = ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
+  b.writeln(_q('Best months: ${a.bestMonths.map((i) => approxQ[i]).join(' and ')} — put the big moves there. '
+      'Ease off in ${a.cautionMonths.map((i) => approxQ[i]).join(' and ')}.'));
   b.writeln(_h('${a.year} · ${stemBranchEn(a.yearPillar)} year · age ${a.nominalAge} · ${_t(a.grade)}'));
   b.writeln('Overall **${a.overall}**. $gradeEn');
   if (a.luckPillar != null) {
