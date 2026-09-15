@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
-/// 国风配色:朱砂、藏青、宣纸。
+/// å›½é£Žé…è‰²:æœ±ç ‚ã€è—é’ã€å®£çº¸ã€‚
 class AppColors {
   static const cinnabar = Color(0xFFB8402E);
   static const ink = Color(0xFF1F2A3A);
@@ -24,7 +24,7 @@ ThemeData buildTheme(Brightness brightness) {
     fontFamily: 'SourceHanSerif',
     fontFamilyFallback: const ['PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', 'sans-serif'],
     appBarTheme: AppBarTheme(
-      centerTitle: true,
+      centerTitle: false,
       backgroundColor: scheme.surface,
       foregroundColor: scheme.onSurface,
       elevation: 0,
@@ -54,11 +54,11 @@ ThemeData buildTheme(Brightness brightness) {
   );
 }
 
-/// 五行色。
+/// äº”è¡Œè‰²ã€‚
 const Map<String, Color> elementColor = {
-  '木': Color(0xFF3E8E5A),
-  '火': Color(0xFFD9534F),
-  '土': Color(0xFFB8860B),
-  '金': Color(0xFFC0A062),
-  '水': Color(0xFF2F6FB3),
+  'æœ¨': Color(0xFF3E8E5A),
+  'ç«': Color(0xFFD9534F),
+  'åœŸ': Color(0xFFB8860B),
+  'é‡‘': Color(0xFFC0A062),
+  'æ°´': Color(0xFF2F6FB3),
 };
