@@ -68,6 +68,10 @@ const Map<String, String> termEnglish = {
   '目字面': 'Oblong face', '圆字面': 'Round face', '同字面': 'Rectangular face',
   '左手': 'Left hand', '右手': 'Right hand',
   '生命线': 'Life line', '智慧线': 'Head line', '感情线': 'Heart line',
+  // 流年 / 太岁
+  '值太岁': 'Same-animal year', '冲太岁': 'Clash with Tai Sui', '刑太岁': 'Punish Tai Sui',
+  '害太岁': 'Harm Tai Sui', '破太岁': 'Break Tai Sui', '合太岁': 'Harmony with Tai Sui',
+  '顺遂年': 'Smooth year', '稳中有进': 'Steady progress', '平年': 'Ordinary year', '守成年': 'Holding year', '蓄力年': 'Gathering year',
   // 合婚
   '天作之合': 'Made for each other', '良缘可期': 'Promising match', '中平可为': 'Workable match',
   '需多磨合': 'Needs work', '慎重考虑': 'Think carefully',

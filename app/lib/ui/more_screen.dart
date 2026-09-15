@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../l10n/strings.dart';
 import '../services/app_state.dart';
+import 'annual_screen.dart';
 import 'marriage_screen.dart';
 import 'naming_screen.dart';
 import 'settings_screen.dart';
@@ -25,6 +26,7 @@ class MoreScreen extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.symmetric(vertical: 8),
             children: [
+              _tile(context, Icons.timeline, s.annualTitle, s.annualSub, const AnnualScreen()),
               _tile(context, Icons.star_border, s.zodiac, s.zodiacSub, const ZodiacScreen()),
               _tile(context, Icons.favorite_outline, s.marriage, s.marriageSub, const MarriageScreen()),
               _tile(context, Icons.text_fields, s.naming, s.namingSub, const NamingScreen()),

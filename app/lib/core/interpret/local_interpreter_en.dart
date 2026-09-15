@@ -15,6 +15,7 @@ import '../bazi/hidden_stems.dart';
 import '../bazi/shen_sha.dart';
 import '../bazi/ten_gods.dart';
 import '../calendar/sexagenary.dart';
+import '../fortune/annual_fortune.dart';
 import '../fortune/daily_fortune.dart';
 import '../marriage/marriage.dart';
 import '../naming/name_analysis.dart';
@@ -85,6 +86,12 @@ const List<_Persona> _stemPersona = [
       'Says little, yet knows everyone\'s secrets — and keeps them.',
       'Ideas kept too deep never reach anyone; say it plainly sometimes.'),
 ];
+
+/// Persona for the shareable card and the dashboard one-liner.
+({String image, String traits, String tip}) enStemPersona(int stem) {
+  final p = _stemPersona[stem];
+  return (image: p.image, traits: p.traits, tip: p.tip);
+}
 
 String _strengthPlain(StrengthLevel l) => switch (l) {
       StrengthLevel.veryStrong => 'Your own side is very strong — big ideas, big drive, and a tendency to do things your own way. Like a phone at 100% still plugged in: the question is where to spend the power.',
@@ -277,6 +284,71 @@ String enInterpretDaily(BaziChart c, DailyFortune f) {
 }
 
 String ymdEn(int y, int m, int d) => '$y-${m.toString().padLeft(2, '0')}-${d.toString().padLeft(2, '0')}';
+
+// ------------------------------------------------------------------ Annual
+
+const Map<TaiSuiKind, String> _taiSuiEn = {
+  TaiSuiKind.same: 'Same as your birth animal — a "Ben Ming" year: change, pressure and turning points; steadiness over haste.',
+  TaiSuiKind.clash: 'Clashes with your birth animal: moves, separations, upheaval; better to choose change than have it chosen for you.',
+  TaiSuiKind.punish: 'Punishes your birth animal: disputes, gossip, friction; leave room in every deal.',
+  TaiSuiKind.harm: 'Harms your birth animal: hidden obstacles, unreliable people; guard against people more than events.',
+  TaiSuiKind.destroy: 'Breaks your birth animal: leaks and interrupted plans; protect savings, avoid big moves.',
+  TaiSuiKind.combine: 'Combines with your birth animal: good connections and helpful people; a year to collaborate.',
+};
+
+String enInterpretAnnual(BaziChart c, AnnualFortune a) {
+  final b = StringBuffer();
+  final gradeEn = switch (a.grade) {
+    '顺遂年' => 'Smooth year — like riding an escalator: projects, proposals and job moves take less effort than usual.',
+    '稳中有进' => 'Steady progress — not flashy, but you end the year with more than you started.',
+    '平年' => 'An ordinary year — "cloudy", bring an umbrella and carry on.',
+    '守成年' => 'A holding year — low-power mode: keep what you have, dig roots, grow next year.',
+    _ => 'A gathering year — like bamboo growing roots underground: quiet now, fast later.',
+  };
+  b.writeln(_h('${a.year} · ${stemBranchEn(a.yearPillar)} year · age ${a.nominalAge} · ${_t(a.grade)}'));
+  b.writeln('Overall **${a.overall}**. $gradeEn');
+  if (a.luckPillar != null) {
+    b.writeln('This is year ${a.year - a.luckPillar!.startYear + 1} of your **${stemBranchEn(a.luckPillar!.pillar)}** luck cycle (${a.luckPillar!.ageRange}).');
+  }
+  b.writeln();
+
+  if (a.taiSui.isNotEmpty) {
+    b.writeln(_h(a.isOffendingTaiSui ? 'Tai Sui alert (犯太岁)' : 'Tai Sui in harmony (合太岁)'));
+    for (final t in a.taiSui) {
+      b.writeln('- **${_t(t.label)}**: ${_taiSuiEn[t]}');
+    }
+    b.writeln(_q(a.isOffendingTaiSui
+        ? '"Offending Tai Sui" doesn\'t mean disaster — it means the year\'s default difficulty is one notch higher: think twice, read contracts twice, sleep an extra hour. The traditional red clothing is really a reminder to be careful, and the reminder is the point.'
+        : 'A harmonious Tai Sui year is rare — helpful people and opportunities are closer than usual, so take the initiative.'));
+  }
+
+  b.writeln(_h('Theme of the year: ${_t(a.theme.label)}'));
+  b.writeln('The year\'s stem ${stemPinyin[a.yearPillar.stem]} is your **${_t(a.theme.label)}** — ${_godPlain[a.theme]}. ${_groupPlain[a.theme.group] ?? ''}\n');
+
+  final items = {'Career': a.career, 'Wealth': a.wealth, 'Love': a.love, 'Health': a.health};
+  final best = items.entries.reduce((x, y) => x.value >= y.value ? x : y);
+  final worst = items.entries.reduce((x, y) => x.value <= y.value ? x : y);
+  b.writeln(_h('Four areas'));
+  b.writeln(items.entries.map((x) => '${x.key} ${x.value}').join(' · '));
+  b.writeln('Brightest: **${best.key}** (${best.value}) — put the big moves here. Needs care: **${worst.key}** (${worst.value}).\n');
+
+  b.writeln(_h('Month by month'));
+  b.writeln('Solar-term months, starting from Start of Spring:');
+  const approx = ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
+  for (final m in a.months) {
+    final tag = a.bestMonths.contains(m.index) ? ' ⭐' : a.cautionMonths.contains(m.index) ? ' ⚠' : '';
+    b.writeln('- **${stemBranchEn(m.pillar)}** (≈${approx[m.index]}) ${m.score}$tag — ${_t(m.theme.label)} month');
+  }
+  b.writeln();
+  b.writeln('Best months: **${a.bestMonths.map((i) => approx[i]).join(', ')}**; take it easy in **${a.cautionMonths.map((i) => approx[i]).join(', ')}**.\n');
+
+  b.writeln(_h('One-line version'));
+  b.writeln('${a.year} is a "${_t(a.grade)}" with a ${_t(a.theme.group)} theme${a.isOffendingTaiSui ? ', with a Tai Sui caution' : ''} — '
+      '${a.overall >= 65 ? 'act when the moment comes' : a.overall >= 50 ? 'steady as she goes' : 'protect the base and save strength for next year'}.');
+
+  b.writeln(_notes(a.factors));
+  return b.toString() + _footer;
+}
 
 // ------------------------------------------------------------------ Marriage
 

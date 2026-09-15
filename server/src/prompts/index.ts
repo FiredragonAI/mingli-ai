@@ -7,7 +7,7 @@
  * 系统提示词是稳定前缀,放 cache_control;每次变化的盘面放 user 消息。
  */
 
-export type Kind = "bazi" | "daily" | "marriage" | "name" | "almanac" | "palm" | "face" | "zodiac";
+export type Kind = "bazi" | "daily" | "marriage" | "name" | "almanac" | "palm" | "face" | "zodiac" | "annual";
 
 const BASE = `你是一位深谙中国传统命理文化的解读师,文风温厚、克制、有文化底蕴,像一位见多识广的长者在茶桌边聊天。
 
@@ -111,6 +111,17 @@ const PER_KIND: Record<Kind, string> = {
 分段:## 整体格局(脸型、三停) / ## 五官所见(眉眼鼻口各一句,引用 palaces) / ## 性情倾向 / ## 小结
 措辞要让任何长相的人读完都觉得被尊重。`,
 
+  annual: `## 本次任务:流年运势解读
+数据含命盘与某一年的流年分析(annual:年柱、所行大运、全年主题十神、太岁关系 taiSui、
+四项评分、factors 依据、十二流月 months 各带分数与 note、bestMonths / cautionMonths)。输出 600–1000 字:
+## 今年是怎样的一年 —— 用 grade 与主题十神给一个整体画面,点明处在哪步大运的第几年
+## 太岁 —— taiSui 非空才写:逐条解释;犯太岁要强调"是提醒不是判决",给 2–3 条具体的谨慎做法;合太岁写如何主动把握
+## 四项运势 —— 最亮与最需经营的各一段,引用 factors 里的依据
+## 逐月节律 —— 不要十二个月流水账:把 bestMonths、cautionMonths 各展开一两句,其余用一句话概括走势
+## 今年的三件事 —— 具体可执行(如"上半年把证考完""七月前别换工作")
+## 一句话版
+若 chart.hourPillarEstimated 为 true,不要基于时柱下结论。`,
+
   zodiac: `## 本次任务:星座解读(西方占星)
 数据含太阳星座(sun:元素、三态、守护星、宫内度数、关键词、优缺点)、可能的上升星座(rising)、
 是否临近换宫(nearCusp / cuspNeighbour),可能附带配对(match)与八字命盘(chart)。
@@ -164,6 +175,8 @@ function labelOf(key: string): string {
       return "影像几何特征";
     case "zodiac":
       return "星座档案";
+    case "annual":
+      return "流年分析";
     case "match":
       return "星座配对";
     default:

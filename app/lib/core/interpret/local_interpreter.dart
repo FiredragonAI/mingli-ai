@@ -19,6 +19,7 @@ import '../bazi/hidden_stems.dart';
 import '../bazi/shen_sha.dart';
 import '../bazi/ten_gods.dart';
 import '../calendar/sexagenary.dart';
+import '../fortune/annual_fortune.dart';
 import '../fortune/daily_fortune.dart';
 import '../marriage/marriage.dart';
 import '../naming/name_analysis.dart';
@@ -284,6 +285,84 @@ String _dailyOneLiner(DailyFortune f) {
   if (f.overall >= 50) return '按部就班,不冒进,今天的稳就是明天的快。';
   return '守好手里的,今天适合整理、复盘、早睡。';
 }
+
+// ===========================================================================
+// 流年
+// ===========================================================================
+
+String localInterpretAnnual(BaziChart c, AnnualFortune a) {
+  final buf = StringBuffer();
+  final theme = tenGodGroupPlain[a.theme.group]!;
+  final gradeFun = switch (a.grade) {
+    '顺遂年' => '顺风顺水的一年,像坐上了自动扶梯——该出手的项目、该表的白、该换的工作,今年比往年省力。',
+    '稳中有进' => '不惊艳但踏实的一年,像存了一年定期——回头看会发现比年初多了不少东西。',
+    '平年' => '不好不坏的普通年份,天气预报说"多云",出门带把伞就行。',
+    '守成年' => '省电模式的一年:守好手里的,别开新局,把根扎深,明年再长。',
+    _ => '蓄力的一年。看起来没动,其实是竹子在地下长根的那几年——熬过去,后面几年蹿得快。',
+  };
+
+  buf.writeln(_h('${a.year} 年 · ${a.yearPillar.name}年 · ${a.nominalAge} 虚岁 · ${a.grade}'));
+  buf.writeln('综合 **${a.overall}** 分。$gradeFun');
+  if (a.luckPillar != null) {
+    buf.writeln('今年处在 **${a.luckPillar!.pillar.name}** 大运(${a.luckPillar!.ageRange})的第 ${a.year - a.luckPillar!.startYear + 1} 年。');
+  }
+  buf.writeln();
+
+  if (a.taiSui.isNotEmpty) {
+    buf.writeln(_h(a.isOffendingTaiSui ? '今年犯太岁' : '今年合太岁'));
+    for (final t in a.taiSui) {
+      buf.writeln('- **${t.label}**:${t.meaning}');
+    }
+    if (a.isOffendingTaiSui) {
+      buf.writeln(_quote('"犯太岁"不是要出事,是这一年的"默认难度"调高了一档:决定多想一步、合同多看一遍、身体多睡一小时。'
+          '老辈人拜太岁、穿红,本质是给自己一个"今年小心点"的提醒——提醒本身就是作用。'));
+    } else {
+      buf.writeln(_quote('合太岁是难得的顺年,贵人和机会都比平时近,主动一点。'));
+    }
+  }
+
+  buf.writeln(_h('全年主题:${theme.term}'));
+  buf.writeln('流年天干${a.yearPillar.stemName}对你是**${a.theme.label}**(${tenGodPlain[a.theme]!.plain})。${theme.plain}');
+  buf.writeln(_quote(theme.fun));
+
+  final items = {'事业': a.career, '财运': a.wealth, '感情': a.love, '健康': a.health};
+  final best = items.entries.reduce((x, y) => x.value >= y.value ? x : y);
+  final worst = items.entries.reduce((x, y) => x.value <= y.value ? x : y);
+  buf.writeln(_h('四项运势'));
+  buf.writeln(items.entries.map((x) => '${x.key} ${x.value}').join(' · '));
+  buf.writeln('今年最亮的是**${best.key}**(${best.value}),重头戏往这里放;最需要经营的是**${worst.key}**(${worst.value}),${_annualWorstAdvice(worst.key)}\n');
+
+  buf.writeln(_h('十二个月的小天气'));
+  buf.writeln('按节气月(立春起算)拆开看,每月的干支和你的命局打个照面:');
+  for (final m in a.months) {
+    final tag = a.bestMonths.contains(m.index) ? ' ⭐' : a.cautionMonths.contains(m.index) ? ' ⚠' : '';
+    buf.writeln('- **${m.pillar.name}月**(约${monthApproxLabel(m.index)})${m.score} 分$tag —— ${m.note}');
+  }
+  buf.writeln();
+  buf.writeln('最顺的两个月:**${a.bestMonths.map((i) => '${a.months[i].pillar.name}月(约${monthApproxLabel(i)})').join('、')}**,重要的事往这里排;'
+      '需要收着点的:**${a.cautionMonths.map((i) => '${a.months[i].pillar.name}月(约${monthApproxLabel(i)})').join('、')}**。\n');
+
+  buf.writeln(_h('为什么是这个分(依据)'));
+  for (final f in a.factors) {
+    buf.writeln('- $f');
+  }
+  buf.writeln();
+
+  buf.writeln(_h('一句话版'));
+  buf.writeln('${a.year} 年是你的"${a.grade}",主题是${a.theme.group},'
+      '${a.isOffendingTaiSui ? '带着犯太岁的提醒,' : ''}'
+      '${a.overall >= 65 ? '该出手时别犹豫' : a.overall >= 50 ? '按部就班就是最好的策略' : '守住基本盘,把力气留给明年'}。'
+      '${a.keywords.isEmpty ? '' : '关键词:${a.keywords.map((k) => '#$k').join(' ')}'}');
+
+  return buf.toString() + _localFooter;
+}
+
+String _annualWorstAdvice(String k) => switch (k) {
+      '事业' => '今年不是跳槽创业的最佳窗口,把手里的做扎实,积累比冒进值钱。',
+      '财运' => '大额投资、借贷、担保今年都往后放;守住不亏就是赢。',
+      '感情' => '容易因小事起争执,把"我以为"改成"我问问";单身的别急着定。',
+      _ => '规律作息比任何补品都管用,体检别拖,旧毛病早处理。',
+    };
 
 // ===========================================================================
 // 合婚

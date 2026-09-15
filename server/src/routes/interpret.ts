@@ -24,6 +24,7 @@ const schemas: Record<Kind, z.ZodTypeAny> = {
   zodiac: z
     .object({ zodiac: obj, match: obj.nullable().optional(), chart: obj.nullable().optional(), language })
     .strict(),
+  annual: z.object({ chart: obj, annual: obj, language }).strict(),
 };
 
 export const interpretRouter = Router();

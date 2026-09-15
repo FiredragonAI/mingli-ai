@@ -225,6 +225,13 @@ bool isHarm(int a, int b) => (a + b) % 12 == 7;
 bool isTripleCombineMember(int a, int b) =>
     a != b && (a - b).abs() % 4 == 0;
 
+/// 两个地支是否相破:子酉 丑辰 寅亥 卯午 巳申 未戌。
+bool isDestroy(int a, int b) {
+  final odd = a.isOdd ? a : (b.isOdd ? b : -1);
+  final even = a.isOdd ? b : a;
+  return odd >= 0 && (odd + 3) % 12 == even;
+}
+
 /// 两个地支是否相刑(含自刑)。
 bool isPunish(int a, int b) {
   if ({a, b}.containsAll([0, 3])) return true;

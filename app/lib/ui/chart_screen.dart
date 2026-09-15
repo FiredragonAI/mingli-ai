@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../core/bazi/bazi_chart.dart';
 import '../core/bazi/shen_sha.dart';
-import '../core/bazi/ten_gods.dart';
 import '../core/interpret/local_interpreter.dart';
 import '../core/interpret/local_interpreter_en.dart';
 import '../data/cities.dart';
@@ -14,8 +13,10 @@ import 'birth_input_screen.dart';
 import 'theme.dart';
 import 'widgets/ai_reading_card.dart';
 import 'widgets/disclaimer.dart';
-import 'widgets/element_bars.dart';
+import 'widgets/element_radar.dart';
+import 'widgets/luck_timeline.dart';
 import 'widgets/pillar_table.dart';
+import 'widgets/share_card.dart';
 import 'zodiac_screen.dart' show zodiacOfChart;
 
 class ChartScreen extends StatelessWidget {
@@ -32,6 +33,11 @@ class ChartScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(input.name.isEmpty ? '${s.term(input.gender.chartLabel)} · ${s.chartTitle}' : '${input.name} · ${s.term(input.gender.chartLabel)}'),
         actions: [
+          IconButton(
+            tooltip: s.shareCard,
+            icon: const Icon(Icons.ios_share),
+            onPressed: () => showShareCard(context, chart, zodiacOfChart(chart)),
+          ),
           IconButton(
             tooltip: s.editBirth,
             icon: const Icon(Icons.edit_outlined),
@@ -50,10 +56,10 @@ class ChartScreen extends StatelessWidget {
             children: [
               _HeaderCard(chart: chart),
               PillarTable(chart: chart),
-              ElementBars(analysis: chart.elements),
+              ElementRadarCard(analysis: chart.elements),
               _InteractionsCard(chart: chart),
               _ShenShaCard(chart: chart),
-              _LuckCard(chart: chart),
+              LuckTimeline(chart: chart),
               AiReadingCard(
                 title: s.aiBazi,
                 load: (api) => api.interpretBazi(chart.toJson()),
@@ -211,64 +217,3 @@ class _ShenShaCard extends StatelessWidget {
   }
 }
 
-class _LuckCard extends StatelessWidget {
-  const _LuckCard({required this.chart});
-  final BaziChart chart;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final s = S.of(context);
-    final luck = chart.luck;
-    final nowYear = DateTime.now().year;
-    final desc = s.en
-        ? 'Starts ${luck.startYears}y ${luck.startMonths}m ${luck.startDays}d after birth (${s.term(luck.direction)}); first cycle at about age ${luck.startYears + 1}'
-        : s.text(luck.startDescription);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(s.luckCycles, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 4),
-            Text(desc, style: theme.textTheme.bodySmall),
-            if (chart.input.timeMode.isEstimated)
-              Text(s.hourEstimated, style: theme.textTheme.bodySmall?.copyWith(color: AppColors.gold)),
-            const SizedBox(height: 12),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  for (final c in luck.cycles)
-                    Container(
-                      width: s.en ? 84 : 72,
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: (nowYear >= c.startYear && nowYear <= c.endYear)
-                            ? theme.colorScheme.primaryContainer
-                            : theme.colorScheme.surfaceContainerHighest,
-                      ),
-                      child: Column(
-                        children: [
-                          Text(c.pillar.stemName, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: elementColor[c.pillar.stemElement.label])),
-                          Text(c.pillar.branchName, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: elementColor[c.pillar.branchElement.label])),
-                          if (s.en) Text(stemBranchEn(c.pillar), style: theme.textTheme.labelSmall),
-                          const SizedBox(height: 4),
-                          Text(s.term(tenGodOf(chart.dayStem, c.pillar.stem).label), style: theme.textTheme.labelSmall, textAlign: TextAlign.center),
-                          Text('${c.startNominalAge}${s.age}', style: theme.textTheme.labelSmall),
-                          Text('${c.startYear}', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline)),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

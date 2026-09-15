@@ -28,6 +28,7 @@ dependencies:
   camera: ^0.11.0+2
   image_picker: ^1.1.2
   file_selector: ^1.0.3             # 桌面端选图:不限扩展名,支持"所有文件"
+  share_plus: ^10.1.4               # 分享海报(iOS 系统分享面板)
   image: ^4.2.0                      # 纯 Dart 图像处理,Windows 可用
   tflite_flutter: ^0.11.0            # Windows 端 MediaPipe 模型推理
 

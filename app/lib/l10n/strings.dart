@@ -65,10 +65,55 @@ class S {
       );
 
   // ------------------------------------------------------------ 导航
+  String get navToday => _('今日', 'Today');
   String get navChart => _('命盘', 'Chart');
   String get navFortune => _('运势', 'Today');
   String get navAlmanac => _('黄历', 'Almanac');
   String get navMore => _('更多', 'More');
+
+  // ------------------------------------------------------------ 今日仪表盘
+  String greeting(String name) => _(name.isEmpty ? '你好' : '$name,你好', name.isEmpty ? 'Hello' : 'Hello, $name');
+  String get todayScoreLabel => _('今日综合', 'Today');
+  String get todayDoAvoid => _('今日宜忌', "Today's do & avoid");
+  String get luckyHoursToday => _('今日吉时', 'Auspicious hours');
+  String get quickActions => _('探索', 'Explore');
+  String get viewFullAlmanac => _('查看完整黄历', 'Full almanac');
+  String get viewChart => _('查看命盘', 'View chart');
+  String get personaLabel => _('人设', 'Persona');
+  String taiSuiBanner(String kinds) => _('今年$kinds,凡事多想一步', 'Tai Sui year ($kinds) — think twice this year');
+  String get taiSuiCombineBanner => _('今年合太岁,贵人运旺', 'Tai Sui in harmony this year — helpful people around');
+  String get annualQuick => _('年运', 'Year');
+  String clashesYourAnimal(String animal) => _('今日冲$animal,大事缓一缓', 'Today clashes with $animal — postpone big decisions');
+  String solarTermBanner(String name) => _('今日交$name,节气换挡', 'Solar term today: $name');
+
+  // ------------------------------------------------------------ 流年
+  String get annualTitle => _('流年运势', 'Year ahead');
+  String get annualSub => _('今年运程 · 犯太岁 · 十二流月', 'This year · Tai Sui · Month by month');
+  String annualHeader(int year, String pillar, int age) => _('$year 年 · $pillar年 · $age 虚岁', '$year · $pillar year · age $age');
+  String get taiSuiTitle => _('太岁', 'Tai Sui');
+  String get offendingTaiSui => _('犯太岁', 'Tai Sui alert');
+  String get noTaiSui => _('今年与太岁无刑冲,常规年份', 'No Tai Sui conflict this year');
+  String inLuckCycle(String pillar, int nth) => _('所行大运 $pillar · 第 $nth 年', 'Luck cycle $pillar · year $nth');
+  String get beforeLuckStart => _('尚未起运', 'Before first luck cycle');
+  String get monthlyTitle => _('十二流月', 'Month by month');
+  String get monthlyHint => _('按节气月,立春起算;⭐ 最顺 ⚠ 留意', 'Solar-term months from Start of Spring; ⭐ best ⚠ take care');
+  String monthApprox(String zhLabel) => en ? const {'1月': 'Jan', '2月': 'Feb', '3月': 'Mar', '4月': 'Apr', '5月': 'May', '6月': 'Jun', '7月': 'Jul', '8月': 'Aug', '9月': 'Sep', '10月': 'Oct', '11月': 'Nov', '12月': 'Dec'}[zhLabel] ?? zhLabel : _(zhLabel, zhLabel);
+  String get aiAnnual => _('AI 年运解读', 'AI year reading');
+  String get thisYear => _('今年', 'This year');
+
+  // ------------------------------------------------------------ 分享卡
+  String get shareCard => _('生成海报', 'Share card');
+  String get saveImage => _('保存图片', 'Save image');
+  String get shareImage => _('分享', 'Share');
+  String get savedTo => _('已保存', 'Saved');
+  String get shareCardFooter => _('命理师 AI · 排盘在本机完成 · 仅供娱乐参考', 'Mingli AI · computed on device · for entertainment');
+  String get favorableShort => _('喜用', 'Favorable');
+  String get dayMasterShort => _('日主', 'Day Master');
+
+  // ------------------------------------------------------------ 大运时间轴
+  String get nowMarker => _('现在', 'now');
+  String get yearlyLuck => _('流年', 'Years');
+  String get tapCycleHint => _('点选一步大运查看十个流年', 'Tap a cycle to see its ten years');
 
   // ------------------------------------------------------------ 出生信息
   String get birthDetails => _('出生信息', 'Birth details');
