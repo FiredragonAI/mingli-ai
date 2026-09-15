@@ -21,6 +21,7 @@ import '../bazi/ten_gods.dart';
 import '../calendar/sexagenary.dart';
 import '../fortune/annual_fortune.dart';
 import '../fortune/daily_fortune.dart';
+import '../marriage/love_forecast.dart';
 import '../marriage/marriage.dart';
 import '../naming/name_analysis.dart';
 import '../naming/numerology.dart';
@@ -392,6 +393,96 @@ String _annualWorstAdvice(String k) => switch (k) {
       '感情' => '容易因小事起争执,把"我以为"改成"我问问";单身的别急着定。',
       _ => '规律作息比任何补品都管用,体检别拖,旧毛病早处理。',
     };
+
+// ===========================================================================
+// 单人婚缘
+// ===========================================================================
+
+String localInterpretLove(BaziChart c, LoveForecast f) {
+  final buf = StringBuffer();
+  final isMale = c.input.isMale;
+  final starLabel = isMale ? '财星' : '官杀';
+  final persona = stemPersonas[c.dayStem];
+
+  buf.writeln('# ${loveHeadline(c, f.pattern, f.overall)}\n');
+  buf.writeln(_quote(loveQuote(c, f)));
+
+  buf.writeln(_h('💞 婚缘指数 ${f.overall}'));
+  buf.writeln('缘分 **${f.affinity}** · 稳定 **${f.stability}** · 桃花 **${f.romance}**');
+  buf.writeln('这三个数分别看:缘分——命里配偶星有没有、清不清;稳定——夫妻宫(日支)有没有被冲刑害;'
+      '桃花——异性缘和感情的"热闹程度"。三个数不用都高,知道哪个低往哪儿补就行。\n');
+
+  buf.writeln(_h('🧭 你的感情模式:${f.pattern}'));
+  buf.writeln(f.patternNote);
+  buf.writeln(_quote('${persona.image}的人谈感情,${persona.tip}'));
+
+  buf.writeln(_h('⭐ 配偶星:$starLabel'));
+  buf.writeln('${isMale ? '男命以财星为妻星' : '女命以官杀为夫星'}(${f.star.direct.label}为正配,${f.star.mixed.label}为偏配),'
+      '对应五行**${f.star.element.label}**。你的命局里$starLabel**${f.star.state}**'
+      '${f.star.count > 0 ? ',共 ${f.star.count} 位(占比 ${f.star.strengthPct.round()}%)' : ''}'
+      '${f.star.sitsInPalace ? ',而且坐在夫妻宫上' : ''}。');
+  buf.writeln(switch (f.star.state) {
+    '无' => '不显不等于没有:这类命格的缘分通常由大运流年"送到",来的时候很明确,来之前别硬凑。',
+    '杂' => '正偏都有、数量又多,说人话就是"不缺人喜欢",课题是取舍——定一条你自己的标准,别用感觉当尺子。',
+    '弱' => '在,但存在感偏低。对方不会主动占据你的生活,需要你留出位置、主动经营。',
+    '旺' => '分量重,对方会是你生活里很大的一块。好处是投入深,风险是容易被关系牵着走。',
+    _ => '清纯有力,是最省心的配置——遇到对的人你认得出,不会在"是不是他"上反复。',
+  });
+  buf.writeln();
+
+  buf.writeln(_h('🏠 夫妻宫:日支${earthlyBranches[f.palaceBranch]}'));
+  buf.writeln('夫妻宫是日柱的地支,传统上代表"配偶坐的位置"和婚姻的底色。你的夫妻宫属**${f.palaceElement.label}**,藏干对日主为**${f.palaceGod.label}**。');
+  if (f.palaceRelations.isEmpty) {
+    buf.writeln('它与其他三柱没有冲刑害——**位置是稳的**,像一张四条腿都着地的桌子。');
+  } else {
+    buf.writeln('它与其他柱的关系:${f.palaceRelations.join(';')}。'
+        '${f.palaceStable ? '以合为主,关系有黏性。' : '有冲刑害,说明婚姻里"变动"的成分偏多——不是不好,是要提前给变动留预案(异地、搬家、观念差异)。'}');
+  }
+  buf.writeln();
+
+  if (f.stars.isNotEmpty) {
+    buf.writeln(_h('🏷 婚恋神煞'));
+    buf.writeln('命带 **${f.stars.join('、')}**。神煞像命盘上的小徽章:桃花红鸾天喜是"异性缘加分卡",孤辰寡宿阴差阳错是"多沟通提醒卡"——有它不代表一定发生,是提醒你留意。\n');
+  }
+
+  buf.writeln(_h('👤 对方画像'));
+  buf.writeln('从夫妻宫的五行、藏干十神和配偶星的位置推出来的**倾向**,不是长相描述:');
+  for (final e in f.spouseProfile.entries) {
+    buf.writeln('- **${e.key}**:${e.value}');
+  }
+  buf.writeln(_quote('这四条里通常两三条会准,全准的话你得请我吃饭。'));
+
+  buf.writeln(_h('📆 婚期窗口'));
+  if (f.windows.isEmpty) {
+    buf.writeln('18–45 岁之间没有特别强的引动年份,说明你的婚缘不靠"某一年突然来",而是靠积累——什么时候遇到合适的,什么时候就是好年份。');
+  } else {
+    buf.writeln('下面是配偶星或夫妻宫被大运流年引动、红鸾天喜到位的年份。**引动 ≠ 一定结婚**,是那一年感情事容易有进展或转折:');
+    final now = DateTime.now().year;
+    for (final w in f.windows) {
+      final tag = w.year < now ? '(已过)' : w.year == now ? '(就是今年)' : '';
+      buf.writeln('- **${w.year} 年 ${w.pillar.name} · ${w.age} 岁**$tag:${w.triggers.join(';')}');
+    }
+    final next = f.windows.where((w) => w.year >= now).toList();
+    if (next.isNotEmpty) buf.writeln('\n最近的一个窗口是 **${next.first.year} 年**,那年前后多留意身边出现的人。');
+  }
+  buf.writeln();
+
+  buf.writeln(_h('🚫 感情里别做的一件事'));
+  buf.writeln('**${loveDont(c, f)}**\n');
+
+  buf.writeln(_h('🧾 依据'));
+  for (final x in f.factors) {
+    buf.writeln('- $x');
+  }
+  buf.writeln();
+
+  buf.writeln(_h('✍️ 一句话版'));
+  buf.writeln('${f.pattern},$starLabel${f.star.state},夫妻宫${f.palaceStable ? '稳' : '有波动'}'
+      '${f.windows.isNotEmpty ? ',留意 ${f.windows.map((w) => w.year).join('/')} 年' : ''}。'
+      '八字讲的是你会被什么样的人吸引、什么时候容易有进展——至于嫁给谁娶了谁,那是你自己写的。');
+
+  return buf.toString() + _localFooter;
+}
 
 // ===========================================================================
 // 合婚

@@ -261,6 +261,32 @@ class S {
   String get about => _('关于', 'About');
   String get aboutSub => _('排盘在本机完成;解读文字由 AI 生成,仅供娱乐参考。', 'Charts are computed on device; readings are AI-generated, for entertainment only.');
 
+  // ------------------------------------------------------------ 感情(单人婚缘 + 合婚)
+  String get loveSub => _('我的婚缘 · 合婚配对', 'My romance · Compatibility');
+  String get myLove => _('我的婚缘', 'My romance');
+  String get pairTab => _('合婚', 'Pairing');
+  String get loveIndex => _('婚缘指数', 'Romance index');
+  String get affinity => _('缘分', 'Affinity');
+  String get stability => _('稳定', 'Stability');
+  String get romanceScore => _('桃花', 'Attraction');
+  String get lovePattern => _('感情模式', 'Pattern');
+  String get spouseStar => _('配偶星', 'Spouse star');
+  String get marriagePalace => _('夫妻宫', 'Marriage palace');
+  String get palaceStable => _('位置稳', 'Steady');
+  String get palaceMoving => _('有波动', 'In motion');
+  String get loveStars => _('婚恋神煞', 'Romance stars');
+  String get spouseProfile => _('对方画像', 'Partner sketch');
+  String get profileHint => _('由夫妻宫五行、藏干十神与配偶星位置推出的倾向', 'Tendencies from the palace element, hidden stem and spouse-star position');
+  String profileKey(String zh) => en ? (const {'气质': 'Presence', '性格': 'Character', '相识': 'How you meet', '方位': 'Direction'}[zh] ?? zh) : _(zh, zh);
+  String get marriageWindows => _('婚期窗口', 'Marriage windows');
+  String get windowsHint => _('配偶星或夫妻宫被大运流年引动的年份;引动 ≠ 一定结婚,是感情易有进展或转折', 'Years when luck cycles activate the spouse star or palace; activation ≠ marriage, it means progress or a turning point');
+  String get noWindows => _('18–45 岁间无特别强的引动年份,婚缘靠积累不靠某一年', 'No strongly activated year 18–45; romance builds by accumulation');
+  String get pastTag => _('已过', 'past');
+  String get thisYearTag => _('今年', 'this year');
+  String get aiLove => _('AI 婚缘解读', 'AI romance reading');
+  String starCount(int n, int pct) => _('$n 位 · 占比 $pct%', '$n position(s) · $pct%');
+  String starState(String zh) => en ? (const {'无': 'Absent', '清': 'Clear', '杂': 'Mixed', '弱': 'Weak', '旺': 'Dominant'}[zh] ?? zh) : _(zh, zh);
+
   // ------------------------------------------------------------ 合婚
   String get addPartner => _('添加对方出生信息', "Add partner's birth details");
   String animalAndDayMaster(String animal, String dm) => _('属$animal · 日主$dm', '$animal · Day Master $dm');

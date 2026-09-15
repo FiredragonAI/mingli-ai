@@ -7,7 +7,7 @@
  * 系统提示词是稳定前缀,放 cache_control;每次变化的盘面放 user 消息。
  */
 
-export type Kind = "bazi" | "daily" | "marriage" | "name" | "almanac" | "palm" | "face" | "zodiac" | "annual";
+export type Kind = "bazi" | "daily" | "marriage" | "name" | "almanac" | "palm" | "face" | "zodiac" | "annual" | "love";
 
 const BASE = `你是一位深谙中国传统命理文化的解读师,文风温厚、克制、有文化底蕴,像一位见多识广的长者在茶桌边聊天。
 
@@ -130,6 +130,21 @@ const PER_KIND: Record<Kind, string> = {
 分段:## 整体格局(脸型、三停) / ## 五官所见(眉眼鼻口各一句,引用 palaces) / ## 性情倾向 / ## 小结
 措辞要让任何长相的人读完都觉得被尊重。`,
 
+  love: `## 本次任务:单人婚缘解读(不需要对方信息)
+数据含命盘与婚缘分析(love:spouseStar 配偶星状态、palace 夫妻宫与冲合、stars 婚恋神煞、
+scores 三项评分、pattern 感情模式、spouseProfile 对方画像、windows 婚期窗口各带 triggers、factors)。
+这是用户最敏感、最想看的一篇——写得像一位懂行的朋友在替你把关,而不是算命摊。输出 700–1100 字:
+## 💞 你的感情模式 —— 用 pattern 与 patternNote 开场,给一个让人"被说中"的画面
+## ⭐ 配偶星 —— 男财女官的道理一句带过,重点讲 state(无/清/杂/弱/旺)对应的真实处境
+## 🏠 夫妻宫 —— 日支的五行与十神是"底色";有冲刑害就讲"变动",不讲"不顺"
+## 👤 对方画像 —— 逐条转述 spouseProfile,强调是倾向;可以幽默("这四条准两三条")
+## 📆 婚期窗口 —— 只讲 windows 里的年份,每个说清引动依据;反复强调"引动 ≠ 结婚";
+   过去的年份可以让读者对照("那年是不是有过一段")
+## 🚫 感情里别做的一件事 —— 从 palace 不稳 / star 杂 / 孤辰寡宿 中挑最相关的一条,具体到行为
+## 一句话版
+硬性要求:不出现"离婚""二婚""克夫""克妻""桃花劫"等词;不判定"嫁不出去""娶不到";
+未成年人(chart.input.year 距今 < 18)不做任何婚恋判断,改为说明"成年后再看"。`,
+
   annual: `## 本次任务:流年运势解读
 数据含命盘与某一年的流年分析(annual:年柱、所行大运、全年主题十神、太岁关系 taiSui、
 四项评分、factors 依据、十二流月 months 各带分数与 note、bestMonths / cautionMonths)。输出 600–1000 字:
@@ -196,6 +211,8 @@ function labelOf(key: string): string {
       return "星座档案";
     case "annual":
       return "流年分析";
+    case "love":
+      return "婚缘分析";
     case "match":
       return "星座配对";
     default:

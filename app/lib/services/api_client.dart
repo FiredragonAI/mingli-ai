@@ -131,6 +131,10 @@ class ApiClient {
   Future<Interpretation> interpretFace(Map<String, dynamic> features, Map<String, dynamic>? chart) =>
       _post('/v1/interpret/face', {'features': features, 'chart': chart});
 
+  /// 单人婚缘。[love] 为 `LoveForecast.toJson()`。
+  Future<Interpretation> interpretLove(Map<String, dynamic> chart, Map<String, dynamic> love) =>
+      _post('/v1/interpret/love', {'chart': chart, 'love': love});
+
   /// 流年。[annual] 为 `AnnualFortune.toJson()`。
   Future<Interpretation> interpretAnnual(Map<String, dynamic> chart, Map<String, dynamic> annual) =>
       _post('/v1/interpret/annual', {'chart': chart, 'annual': annual});

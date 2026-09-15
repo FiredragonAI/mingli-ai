@@ -17,6 +17,7 @@ import '../bazi/ten_gods.dart';
 import '../calendar/sexagenary.dart';
 import '../fortune/annual_fortune.dart';
 import '../fortune/daily_fortune.dart';
+import '../marriage/love_forecast.dart';
 import '../marriage/marriage.dart';
 import '../naming/name_analysis.dart';
 import '../naming/numerology.dart';
@@ -439,6 +440,114 @@ String enInterpretAnnual(BaziChart c, AnnualFortune a) {
   b.writeln(_notes(a.factors));
   return b.toString() + _footer;
 }
+
+// ------------------------------------------------------------------ Love (solo)
+
+const Map<String, String> lovePatternEn = {
+  '晚成型': 'Late bloomer',
+  '选择丰富型': 'Spoilt for choice',
+  '主动追求型': 'The pursuer',
+  '被动吸引型': 'The magnet',
+  '需要空间型': 'Needs room',
+  '朋友变恋人型': 'Friends first',
+  '慢热依赖型': 'Slow burn',
+  '稳定经营型': 'Steady builder',
+};
+
+const Map<String, String> _patternNoteEn = {
+  '晚成型': 'The spouse star is faint in your chart, so romance arrives with the luck cycles — no need to force it young; when the year comes, it will be obvious.',
+  '选择丰富型': 'No shortage of admirers; the hard part is settling. Give yourself one standard instead of "how it feels".',
+  '主动追求型': 'You pursue, they respond — your default. Giving is a strength; just don\'t treat it as leverage.',
+  '被动吸引型': 'Attraction was never your problem — choosing is. Pick the person who makes life easier, not just faster.',
+  '需要空间型': 'Your talent and will can overshadow a partner. Find someone who admires you rather than wants to manage you.',
+  '朋友变恋人型': 'Your romances tend to start in the friend circle — and face competition there. Friends first is your edge.',
+  '慢热依赖型': 'Slow to warm, very steady once decided. Choose someone mature and patient, not someone you have to carry.',
+  '稳定经营型': 'Spouse star and Day Master are evenly matched — a chart built for everyday life. Quality depends on effort, not luck.',
+};
+
+const Map<String, String> _profileKeyEn = {'气质': 'Presence', '性格': 'Character', '相识': 'How you meet', '方位': 'Direction'};
+
+String _loveHeadlineEn(String pattern, int seed) {
+  final pool = switch (pattern) {
+    '晚成型' => ['Your match isn\'t missing — it\'s picking a date', 'The ones who arrive late are often the right ones'],
+    '选择丰富型' => ['You don\'t lack admirers; you lack a rule', 'Many flowers — the trick is not going cross-eyed'],
+    '主动追求型' => ['You\'re used to chasing; let them chase you sometimes', 'Giving is a gift, not a bargaining chip'],
+    '被动吸引型' => ['Attraction isn\'t your problem. Choosing is', 'Pick the one who makes it easy, not the one who makes it racing'],
+    '需要空间型' => ['You need someone who admires you, not manages you', 'Your light dazzles — find someone who isn\'t afraid of it'],
+    '朋友变恋人型' => ['Your love stories start as friendships', 'Friends first is your superpower'],
+    '慢热依赖型' => ['Slow to warm, impossible to shake', 'Your love is a slow fire — don\'t pair it with a flash'],
+    _ => ['Built for everyday life', 'Steady is your baseline — don\'t mistake it for boring'],
+  };
+  return _pick(pool, seed);
+}
+
+String enInterpretLove(BaziChart c, LoveForecast f) {
+  final b = StringBuffer();
+  final isMale = c.input.isMale;
+  final starLabel = isMale ? 'Wealth stars (财星)' : 'Authority stars (官杀)';
+  final pat = lovePatternEn[f.pattern] ?? f.pattern;
+
+  b.writeln('# ${_loveHeadlineEn(f.pattern, _seed(c) + f.overall)}\n');
+  b.writeln(_q('The marriage palace is your seat; the spouse star is who sits in it — '
+      '${f.star.state == '无' ? 'the seat is empty for now, the person is on the way' : f.star.state == '杂' ? 'more than one person is heading for it' : 'both seat and person are there'}.'));
+
+  b.writeln(_h('💞 Romance index ${f.overall}'));
+  b.writeln('Affinity **${f.affinity}** · Stability **${f.stability}** · Attraction **${f.romance}**\n');
+
+  b.writeln(_h('🧭 Your pattern: $pat'));
+  b.writeln('${_patternNoteEn[f.pattern] ?? ''}\n');
+
+  b.writeln(_h('⭐ Spouse star: $starLabel'));
+  b.writeln('${isMale ? 'A man\'s chart reads the Wealth stars as the wife' : 'A woman\'s chart reads the Authority stars as the husband'} '
+      '(${_t(f.star.direct.label)} primary, ${_t(f.star.mixed.label)} secondary), element **${_el(f.star.element)}**. '
+      'In your chart the star is **${_starStateEn(f.star.state)}**${f.star.count > 0 ? ', ${f.star.count} position(s), ${f.star.strengthPct.round()}% of the chart' : ''}'
+      '${f.star.sitsInPalace ? ', and it sits right in the marriage palace' : ''}.\n');
+
+  b.writeln(_h('🏠 Marriage palace: ${branchEn(f.palaceBranch)}'));
+  b.writeln('The Day Branch is the "seat" of the spouse. Yours is **${_el(f.palaceElement)}**, hidden stem **${_t(f.palaceGod.label)}** to your Day Master. '
+      '${f.palaceRelations.isEmpty ? 'No clash, punishment or harm from the other pillars — **a steady seat**.' : f.palaceStable ? 'Mostly combinations with the other pillars — the relationship has glue.' : 'Clash / punishment / harm from other pillars — more "movement" in marriage than average; plan for distance, moves and differing views rather than fearing them.'}\n');
+
+  if (f.stars.isNotEmpty) {
+    b.writeln(_h('🏷 Romance stars'));
+    b.writeln('Chart carries **${f.stars.map(_t).join(', ')}**. Peach Blossom / Red Phoenix / Heavenly Joy add attraction; Lonely / Widow / Yin-Yang Error are reminders to communicate more.\n');
+  }
+
+  b.writeln(_h('👤 Partner sketch'));
+  b.writeln('Tendencies inferred from the palace element, its hidden stem and where the spouse star sits (中文 detail below):');
+  for (final e in f.spouseProfile.entries) {
+    b.writeln('- **${_profileKeyEn[e.key] ?? e.key}**: ${e.value}');
+  }
+  b.writeln();
+
+  b.writeln(_h('📆 Marriage windows'));
+  if (f.windows.isEmpty) {
+    b.writeln('No strongly activated year between 18 and 45 — your romance builds by accumulation, not by a single year.');
+  } else {
+    b.writeln('Years when luck cycles activate the spouse star or marriage palace, or Red Phoenix / Heavenly Joy arrive. **Activation ≠ marriage** — it means progress or a turning point is likely:');
+    final now = DateTime.now().year;
+    for (final w in f.windows) {
+      final tag = w.year < now ? ' (past)' : w.year == now ? ' (this year)' : '';
+      b.writeln('- **${w.year} · ${stemBranchEn(w.pillar)} · age ${w.age}**$tag — ${w.triggers.length} trigger(s)');
+    }
+  }
+  b.writeln();
+
+  b.writeln(_h('✍️ One-line version'));
+  b.writeln('$pat; spouse star ${_starStateEn(f.star.state)}; marriage palace ${f.palaceStable ? 'steady' : 'in motion'}'
+      '${f.windows.isNotEmpty ? '; watch ${f.windows.map((w) => w.year).join('/')}' : ''}. '
+      'The chart says who you are drawn to and when things move — who you marry is still yours to write.');
+
+  b.writeln(_notes(f.factors));
+  return b.toString() + _footer;
+}
+
+String _starStateEn(String s) => switch (s) {
+      '无' => 'absent',
+      '清' => 'clear and strong',
+      '杂' => 'mixed and plentiful',
+      '弱' => 'weak',
+      _ => 'dominant',
+    };
 
 // ------------------------------------------------------------------ Marriage
 

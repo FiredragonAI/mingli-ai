@@ -13,7 +13,7 @@ import '../l10n/strings.dart';
 import '../services/app_state.dart';
 import 'almanac_screen.dart';
 import 'annual_screen.dart';
-import 'marriage_screen.dart';
+import 'love_screen.dart';
 import 'naming_screen.dart';
 import 'settings_screen.dart';
 import 'theme.dart';
@@ -386,7 +386,7 @@ class _QuickActions extends StatelessWidget {
     final items = <(IconData, String, Widget)>[
       (Icons.timeline, s.annualQuick, const AnnualScreen()),
       (Icons.star_border, s.zodiac, const ZodiacScreen()),
-      (Icons.favorite_outline, s.marriage, const MarriageScreen()),
+      (Icons.favorite_outline, s.love, const LoveScreen()),
       (Icons.text_fields, s.naming, const NamingScreen()),
       (Icons.back_hand_outlined, s.palmAi, const VisionScreen(mode: VisionMode.palm)),
       (Icons.face_outlined, s.faceAi, const VisionScreen(mode: VisionMode.face)),
