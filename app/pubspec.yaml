@@ -30,7 +30,7 @@ dependencies:
   file_selector: ^1.0.3             # 桌面端选图:不限扩展名,支持"所有文件"
   share_plus: ^10.1.4               # 分享海报(iOS 系统分享面板)
   image: ^4.2.0                      # 纯 Dart 图像处理,Windows 可用
-  tflite_flutter: ^0.11.0            # Windows 端 MediaPipe 模型推理
+  tflite_flutter: ^0.12.0            # Windows 端 MediaPipe 模型推理
 
   # 展示
   fl_chart: ^0.69.0                  # 五行雷达图 / 运势曲线

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>命理师 AI 隐私政策 / Privacy Policy</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { max-width: 760px; margin: 0 auto; padding: 32px 20px 80px; line-height: 1.75;
+         font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif; }
+  h1 { font-size: 1.7rem; margin-bottom: .2em; }
+  h2 { font-size: 1.15rem; margin-top: 2em; padding-top: .6em; border-top: 1px solid rgba(128,128,128,.3); }
+  h3 { font-size: 1rem; margin-top: 1.4em; }
+  .meta { color: #666; font-size: .9rem; }
+  .lang-nav { margin: 1.5em 0; }
+  .lang-nav a { margin-right: 1em; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: .92rem; }
+  th, td { border: 1px solid rgba(128,128,128,.35); padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: rgba(128,128,128,.12); }
+  .key { background: rgba(200,160,60,.14); padding: 12px 14px; border-left: 3px solid #c9a55a; margin: 1.2em 0; }
+  section { display: none; }
+  section:target, section.active { display: block; }
+  code { font-size: .9em; }
+</style>
+</head>
+<body>
+
+<h1>命理师 AI · 隐私政策</h1>
+<p class="meta">生效日期:2026 年 9 月 15 日 · 最近更新:2026 年 9 月 15 日</p>
+<p class="lang-nav"><a href="#zh-hans">简体中文</a> <a href="#zh-hant">繁體中文</a> <a href="#en">English</a></p>
+
+<!-- ===================== 简体中文 ===================== -->
+<section id="zh-hans" class="active">
+
+<div class="key">
+<strong>一句话总结:</strong>本应用的全部命理推算都在你的手机上完成。我们不设账号、不收集你的姓名与生日、不保存也不上传你的照片。只有在你主动点击「AI 解读」时,才会把<em>已经算好的盘面数据</em>发送到解读服务器;即便如此,其中也不含你的姓名、出生日期或任何照片。
+</div>
+
+<h2>1. 我们收集什么</h2>
+
+<h3>1.1 只存在你设备上的信息(我们看不到)</h3>
+<table>
+<tr><th>信息</th><th>用途</th><th>存放位置</th></tr>
+<tr><td>出生日期、时间、出生地(省级)、性别</td><td>排八字、算运势</td><td>仅保存在本机;卸载应用即删除</td></tr>
+<tr><td>姓名(选填)</td><td>姓名五格测算</td><td>同上</td></tr>
+<tr><td>语言、界面偏好</td><td>记住你的设置</td><td>同上</td></tr>
+</table>
+<p>这些数据<strong>不会</strong>发送给我们,也不会发送给任何第三方。我们没有服务器数据库保存它们,因为本应用没有账号系统。</p>
+
+<h3>1.2 照片(手相 / 面相功能)</h3>
+<p>只有当你主动使用「手相 AI」或「面相 AI」并单独同意后,应用才会读取你选择或拍摄的一张照片。关于这张照片:</p>
+<ul>
+  <li><strong>分析完全在你的设备上进行。</strong>照片不会上传到任何服务器。</li>
+  <li><strong>照片不会被保存。</strong>使用相机拍摄的临时文件在分析结束后立即删除;从相册选择的照片我们不复制、不修改。</li>
+  <li>分析只提取<strong>几何比例</strong>(例如三停比例、五眼比例、掌长与掌宽之比、手指长度比、掌纹的长度与弯曲度)。这些是纯数字,<strong>无法据此还原出你的照片或识别你的身份</strong>。</li>
+  <li>我们<strong>不做人脸识别、不建立人脸特征库、不比对身份</strong>。本应用不具备识别"你是谁"的能力。</li>
+  <li>你可以随时在「设置 → 隐私」中撤回这项同意。</li>
+</ul>
+
+<h3>1.3 使用云端 AI 解读时发送的内容</h3>
+<p>当你点击「开始解读」且应用处于云端模式时,会向解读服务发送:</p>
+<ul>
+  <li>已经在你手机上算好的<strong>结构化盘面数据</strong>:四柱干支、五行占比、十神、神煞、评分及其依据文字;手相/面相则是上述几何比例数字。</li>
+  <li>一个<strong>随机生成的设备编号</strong>(用于防止滥用与限流)。它不是广告标识符,与你的手机号、邮箱、账号无任何关联,卸载重装后即变为新的编号。</li>
+  <li>应用版本、操作系统类型、界面语言。</li>
+</ul>
+<p><strong>不会发送:</strong>你的姓名、出生日期与时间、出生地、照片、通讯录、位置、任何设备硬件标识符。</p>
+<p>如果你在「设置」中开启「始终使用离线本地解读」,应用将<strong>完全不联网</strong>,所有解读文字由本机规则引擎生成。</p>
+
+<h2>2. 我们如何使用这些信息</h2>
+<ul>
+  <li>生成你请求的命理解读文字。</li>
+  <li>缓存相同盘面的解读结果,以减少重复计算(缓存以盘面数据的哈希为键,不含个人身份信息,最长保存 7 天)。</li>
+  <li>按设备编号限流,防止服务被滥用。</li>
+</ul>
+<p>我们<strong>不会</strong>:出售你的数据、用于广告投放、用于用户画像或定向营销、与数据经纪商共享。</p>
+
+<h2>3. 第三方服务</h2>
+<p>云端解读由 <strong>Anthropic</strong> 的 Claude 模型生成。我们把上述结构化盘面数据发送给 Anthropic 的 API 以获取解读文字。Anthropic 的隐私政策见 <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener">anthropic.com/legal/privacy</a>。除此之外,本应用不集成任何广告 SDK、统计分析 SDK 或社交登录组件。</p>
+
+<h2>4. 数据保留</h2>
+<ul>
+  <li>你的出生信息等:保存在你的设备上,直到你在应用内删除档案或卸载应用。</li>
+  <li>解读结果缓存:服务器端最长 7 天,之后自动清除。</li>
+  <li>服务器访问日志:记录请求时间、路径、设备编号,<strong>不记录请求内容</strong>,保留不超过 30 天。</li>
+  <li>照片:从不保留。</li>
+</ul>
+
+<h2>5. 你的权利</h2>
+<ul>
+  <li><strong>删除数据:</strong>在「设置 → 档案」中删除档案,或卸载应用,即可删除设备上的全部个人信息。</li>
+  <li><strong>撤回照片处理同意:</strong>「设置 → 隐私」中关闭对应开关。</li>
+  <li><strong>完全离线使用:</strong>「设置 → 始终使用离线本地解读」打开后,应用不再进行任何网络通信。</li>
+  <li><strong>查询与申诉:</strong>通过下方邮箱联系我们。由于本应用没有账号体系、服务器不保存可识别到个人的数据,我们通常无法"查到"属于某个人的记录——这本身就是设计目标。</li>
+</ul>
+
+<h2>6. 儿童</h2>
+<p>本应用面向成年人,不针对 13 岁以下儿童设计,也不会在知情的情况下收集儿童的个人信息。应用中包含婚恋、感情等主题的娱乐性内容,不适合低龄用户。</p>
+
+<h2>7. 重要声明</h2>
+<div class="key">
+本应用的全部内容基于中国传统文化整理,<strong>仅供娱乐与文化参考</strong>,不构成任何医疗、法律、投资、婚恋或其他专业建议,也不具有科学预测能力。请勿依据本应用的内容作出重大人生决策。
+</div>
+
+<h2>8. 政策变更</h2>
+<p>本政策如有更新,我们会修改本页顶部的"最近更新"日期。重大变更会在应用内提示。</p>
+
+<h2>9. 联系我们</h2>
+<p>邮箱:<a href="mailto:hwang@cspeed.io">hwang@cspeed.io</a></p>
+
+</section>
+
+<!-- ===================== 繁體中文 ===================== -->
+<section id="zh-hant">
+<h2>命理師 AI · 隱私權政策(繁體)</h2>
+<div class="key">
+<strong>一句話總結:</strong>本應用的全部命理推算都在你的手機上完成。我們不設帳號、不蒐集你的姓名與生日、不保存也不上傳你的照片。只有在你主動點擊「AI 解讀」時,才會把<em>已經算好的盤面資料</em>傳送到解讀伺服器;即便如此,其中也不含你的姓名、出生日期或任何照片。
+</div>
+<p>完整條款內容與簡體中文版一致,請參閱上方<a href="#zh-hans">簡體中文</a>版本;如兩者有歧義,以簡體中文版為準。重點摘要:</p>
+<ul>
+  <li>出生資料、姓名僅保存於本機,解除安裝即刪除。</li>
+  <li>手相/面相照片僅在裝置上分析,<strong>不保存、不上傳</strong>,只擷取無法還原身分的幾何比例數字。我們不做人臉辨識。</li>
+  <li>雲端解讀僅傳送已算好的結構化盤面資料與一組隨機裝置編號,不含姓名、生日、照片。</li>
+  <li>可在「設定」中開啟「始終使用離線本機解讀」,應用將完全不連網。</li>
+  <li>內容僅供娛樂與文化參考,不構成任何專業建議。</li>
+</ul>
+<p>聯絡信箱:<a href="mailto:hwang@cspeed.io">hwang@cspeed.io</a></p>
+</section>
+
+<!-- ===================== English ===================== -->
+<section id="en">
+<h2>Mingli AI · Privacy Policy (English)</h2>
+
+<div class="key">
+<strong>In one sentence:</strong> All divination calculations happen on your own device. There are no accounts. We do not collect your name or birth date, and we never store or upload your photos. Only when you tap "AI reading" do we send <em>already-computed chart data</em> to our reading service — and even then it contains no name, birth date, or photo.
+</div>
+
+<h3>1. What we collect</h3>
+<p><strong>1.1 Stored only on your device (we cannot see it):</strong> birth date, time, birthplace (province level), gender, optional name, language and display preferences. Used to compute your chart locally. Deleted when you remove the profile or uninstall the app. This data is never transmitted to us or any third party. There is no account system and no server-side database of users.</p>
+
+<p><strong>1.2 Photos (Palm / Face features):</strong> Only after you explicitly opt in does the app read one photo you choose or capture.</p>
+<ul>
+  <li>Analysis happens <strong>entirely on your device</strong>. The photo is never uploaded.</li>
+  <li>The photo is <strong>not stored</strong>. Temporary camera files are deleted immediately after analysis; gallery photos are neither copied nor modified.</li>
+  <li>Only <strong>geometric ratios</strong> are extracted (e.g. facial third proportions, eye-width ratio, palm length-to-width, finger length ratios, palm line length and curvature). These are plain numbers from which <strong>your photo cannot be reconstructed and your identity cannot be determined</strong>.</li>
+  <li>We do <strong>not</strong> perform facial recognition, build any face template database, or match identities. The app has no capability to determine who you are.</li>
+  <li>You may withdraw this consent at any time in Settings → Privacy.</li>
+</ul>
+
+<p><strong>1.3 Sent when using cloud AI readings:</strong> the structured chart data already computed on your device (pillars, element percentages, Ten Gods, symbolic stars, scores and their supporting text; or the geometric ratios for palm/face), plus a <strong>randomly generated device identifier</strong> used solely for rate limiting. That identifier is not an advertising ID, is unlinked to any phone number, email or account, and is regenerated on reinstall. We also send app version, OS type, and interface language.</p>
+<p><strong>Never sent:</strong> your name, birth date or time, birthplace, photos, contacts, location, or any hardware device identifier.</p>
+<p>Enabling "Always use offline local readings" in Settings makes the app operate with <strong>no network access at all</strong>.</p>
+
+<h3>2. How we use it</h3>
+<p>To generate the reading you requested; to cache readings for identical chart data (keyed by a hash of that data, containing no personal identifiers, for at most 7 days); and to rate-limit abuse. We do not sell data, serve ads, build user profiles, or share with data brokers.</p>
+
+<h3>3. Third parties</h3>
+<p>Cloud readings are generated by <strong>Anthropic</strong>'s Claude models; the structured chart data described above is sent to Anthropic's API. See <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener">Anthropic's privacy policy</a>. The app contains no advertising SDKs, no analytics SDKs, and no social login components.</p>
+
+<h3>4. Retention</h3>
+<p>On-device data: until you delete the profile or uninstall. Reading cache: max 7 days server-side. Server access logs: request time, path and device identifier only — <strong>never request contents</strong> — kept no longer than 30 days. Photos: never retained.</p>
+
+<h3>5. Your rights</h3>
+<p>Delete all personal data by removing profiles in Settings or uninstalling the app. Withdraw photo-processing consent in Settings → Privacy. Operate fully offline via the offline readings switch. For enquiries, contact us below — note that because there is no account system and no personally identifiable data stored on our servers, we generally cannot locate records belonging to a specific individual, which is by design.</p>
+
+<h3>6. Children</h3>
+<p>This app is intended for adults, is not directed at children under 13, and does not knowingly collect children's personal information. It contains entertainment content on relationship and marriage themes that is unsuitable for young users.</p>
+
+<h3>7. Important notice</h3>
+<div class="key">
+All content is compiled from Chinese traditional culture and is provided for <strong>entertainment and cultural reference only</strong>. It does not constitute medical, legal, financial, relationship or other professional advice, and has no scientific predictive validity. Do not base significant life decisions on it.
+</div>
+
+<h3>8. Changes &amp; contact</h3>
+<p>Updates are reflected in the "last updated" date at the top of this page; material changes are announced in-app. Contact: <a href="mailto:hwang@cspeed.io">hwang@cspeed.io</a></p>
+</section>
+
+<script>
+  // 锚点切换语言;无 JS 时默认显示简体
+  function show() {
+    var id = location.hash.slice(1) || 'zh-hans';
+    document.querySelectorAll('section').forEach(function (s) {
+      s.classList.toggle('active', s.id === id);
+    });
+  }
+  window.addEventListener('hashchange', show);
+  show();
+</script>
+</body>
+</html>

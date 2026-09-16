@@ -2,7 +2,7 @@
 
 八字 · 五行 · AI 解读 · 每日运势 · 合婚 · 姓名测试 · 黄历 · 星座 · 手相/面相
 
-**平台**:iOS + Windows(Flutter 单一代码库)
+**平台**:Android + iOS + Windows(Flutter 单一代码库)
 **AI**:自建 Node 后端代理 Claude API,客户端不持有密钥
 **影像**:手相/面相在**设备端**提取几何特征,原始照片不出设备
 
@@ -58,4 +58,4 @@ cd app && flutter pub get && flutter test
 cd server && npm install && npm run dev
 ```
 
-详见 [docs/SETUP.md](docs/SETUP.md)、[docs/DEPLOY.md](docs/DEPLOY.md)(云端部署,让用户联网即可用 AI)、[docs/ALGORITHM.md](docs/ALGORITHM.md)、[docs/COMPLIANCE.md](docs/COMPLIANCE.md)。
+详见 [docs/SETUP.md](docs/SETUP.md)、[docs/DEPLOY.md](docs/DEPLOY.md)(云端部署,让用户联网即可用 AI)、[docs/PLAY_STORE.md](docs/PLAY_STORE.md)(上架 Google Play)、[docs/IOS_CLOUD_BUILD.md](docs/IOS_CLOUD_BUILD.md)(没有 Mac 也能出 iOS 版)、[docs/ALGORITHM.md](docs/ALGORITHM.md)、[docs/COMPLIANCE.md](docs/COMPLIANCE.md)。
