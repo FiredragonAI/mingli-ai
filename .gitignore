@@ -25,3 +25,6 @@ app/android/key.properties
 app/android/*.jks
 app/android/app/*.jks
 *.keystore
+
+# 模拟器排障截图(非商店素材,体积大且会反复覆盖)
+app/store/screenshots/

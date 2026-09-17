@@ -608,6 +608,8 @@ class _Persona extends StatelessWidget {
     final chart = d.chart;
     final p = stemPersonas[chart.dayStem];
     final pe = enStemPersona(chart.dayStem);
+    // 查不到就退回主题色:颜色不对总好过整页白屏
+    final dmColor = elementColor[chart.dayMaster.label] ?? theme.colorScheme.primary;
     return Card(
       margin: EdgeInsets.zero,
       child: InkWell(
@@ -621,9 +623,9 @@ class _Persona extends StatelessWidget {
                 width: 56,
                 height: 56,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(color: (elementColor[chart.dayMaster.label] as Color).withValues(alpha: 0.15), borderRadius: BorderRadius.circular(14)),
+                decoration: BoxDecoration(color: dmColor.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(14)),
                 child: Text(s.en ? stemPinyin[chart.dayStem] : chart.dayMasterName,
-                    style: TextStyle(fontSize: s.en ? 16 : 30, fontWeight: FontWeight.w800, color: elementColor[chart.dayMaster.label])),
+                    style: TextStyle(fontSize: s.en ? 16 : 30, fontWeight: FontWeight.w800, color: dmColor)),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -688,8 +690,12 @@ class _WeekTrend extends StatelessWidget {
                 sideTitles: SideTitles(
                   showTitles: true,
                   reservedSize: 22,
+                  // interval:1 + 整数判断,缺一不可。fl_chart 会在 0.5、1.5 这些
+                  // 半整数位置也回调,toInt() 向下取整后每个日期会被画两遍。
+                  interval: 1,
                   getTitlesWidget: (v, _) {
-                    final i = v.toInt();
+                    if (v != v.roundToDouble()) return const SizedBox.shrink();
+                    final i = v.round();
                     if (i < 0 || i >= week.length) return const SizedBox.shrink();
                     return Text(i == 0 ? (s.en ? 'Today' : '今') : '${week[i].month}/${week[i].day}',
                         style: theme.textTheme.labelSmall?.copyWith(fontWeight: i == 0 ? FontWeight.w700 : null));

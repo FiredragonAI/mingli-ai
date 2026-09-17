@@ -162,8 +162,11 @@ class _AnnualScreenState extends State<AnnualScreen> {
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   reservedSize: 30,
+                                  interval: 1,
                                   getTitlesWidget: (v, _) {
-                                    final i = v.toInt();
+                                    if (v != v.roundToDouble()) return const SizedBox.shrink();
+                                    final i = v.round();
+                                    if (i < 0 || i >= a.months.length) return const SizedBox.shrink();
                                     final m = a.months[i];
                                     return Column(
                                       mainAxisSize: MainAxisSize.min,
