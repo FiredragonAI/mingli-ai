@@ -18,6 +18,17 @@
 
 > **个人 vs 企业账号**:2023 年起个人开发者账号在正式发布前需要通过"封闭测试"阶段(至少 12 名测试者持续 14 天)。企业账号没有这个要求。如果你打算认真运营,注册企业账号(需要 D-U-N-S)能省掉这一步。
 
+
+### 0.1 设备验证(注册后会立刻卡住的一屏)
+
+Play Console 会要求你"验证拥有一台 Android 设备":装 **Google Play Console 手机版** → 用注册时的同一个 Google 账号登录 → 选中你的开发者账号 → 按提示完成。
+
+用户没有 Android 手机,按可靠性排序:
+
+1. **借一台 Android 手机,五分钟**——最稳。装 Play Console app,用**自己的**账号登录,验证完退出登录。验证只证明"这个账号能碰到一台真设备",**不会把开发者账号绑到那台手机上**,也不在别人机器上留东西。
+2. **带 Google Play 商店的模拟器**——AVD `play_verify`(`system-images;android-36;google_apis_playstore;x86_64`,Pixel 7,config.ini 里手动改 `PlayStore.enabled=yes`,avdmanager 命令行不会自动设)。**Google 不保证认模拟器**,有人成功有人被拒,值得先试。注意:普通 `google_apis` 镜像没有 Play 商店,装不了 Play Console app。
+3. **买台二手 Android 机**——正式发布前本来就该在真机上过一遍,这钱不算白花。
+
 ---
 
 ## 1. 产物在哪
