@@ -47,11 +47,12 @@ flutter:
   assets:
     - assets/models/
     - assets/data/
-  # 思源宋体为可选资源。下载 SourceHanSerifSC-Regular/Bold.otf 到 assets/fonts/ 后取消下面注释;
-  # 未放置时主题回退到系统中文字体。
-  # fonts:
-  #   - family: SourceHanSerif
-  #     fonts:
-  #       - asset: assets/fonts/SourceHanSerifSC-Regular.otf
-  #       - asset: assets/fonts/SourceHanSerifSC-Bold.otf
-  #         weight: 700
+  # 思源宋体子集(SIL OFL):由 tools/fontsubset/subset.mjs 从官方全字库裁出,
+  # 覆盖 lib/ 里出现的全部汉字 + 简繁表 + GB2312 全部 6763 字。
+  # 打包的原因见 lib/platform/native_web.dart 注释:Web 端没有系统字体可回退。
+  fonts:
+    - family: SourceHanSerif
+      fonts:
+        - asset: assets/fonts/SourceHanSerifSC-Regular.otf
+        - asset: assets/fonts/SourceHanSerifSC-Bold.otf
+          weight: 700

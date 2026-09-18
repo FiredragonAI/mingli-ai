@@ -10,8 +10,6 @@ app/windows/flutter/ephemeral/
 app/.idea/
 *.iml
 
-# 字体仍需自行下载(见 pubspec.yaml 里的注释),体积大且有单独版权条款
-app/assets/fonts/*.otf
 
 # Node
 server/node_modules/
@@ -28,3 +26,4 @@ app/android/app/*.jks
 
 # 模拟器排障截图(非商店素材,体积大且会反复覆盖)
 app/store/screenshots/
+app/tools/fontsubset/node_modules/
