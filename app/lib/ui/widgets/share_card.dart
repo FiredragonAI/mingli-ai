@@ -1,8 +1,8 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' hide Element;
 import 'package:flutter/rendering.dart';
 import 'package:share_plus/share_plus.dart';
@@ -14,6 +14,7 @@ import '../../core/interpret/plain_language.dart';
 import '../../core/zodiac/western_zodiac.dart';
 import '../../l10n/glossary.dart';
 import '../../l10n/strings.dart';
+import '../../platform/native.dart';
 import '../theme.dart';
 
 /// 可分享的"命盘人设卡":四柱 + 日主人设 + 五行 + 喜用 + 星座,竖版海报比例。
@@ -131,7 +132,9 @@ Future<void> showShareCard(BuildContext context, BaziChart chart, ZodiacProfile 
   final key = GlobalKey();
   final s = S.of(context);
   final messenger = ScaffoldMessenger.of(context);
-  final isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  // 桌面端另存为、Web 端浏览器下载,都是"存到本机";手机端才走系统分享面板
+  final saveLocally = isDesktop || kIsWeb;
+  final filename = 'mingli-${chart.summaryLine.replaceAll(' ', '')}.png';
 
   Future<Uint8List> capture() async {
     final boundary = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
@@ -150,31 +153,39 @@ Future<void> showShareCard(BuildContext context, BaziChart chart, ZodiacProfile 
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              RepaintBoundary(key: key, child: PersonaCard(chart: chart, zodiac: zodiac, s: s)),
+              // 海报比对话框宽时按比例缩小显示;RepaintBoundary 在 FittedBox 里面,
+              // toImage 抓的仍是海报自身的布局尺寸(pixelRatio 3),导出分辨率不受影响。
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: RepaintBoundary(key: key, child: PersonaCard(chart: chart, zodiac: zodiac, s: s)),
+              ),
               const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              // OverflowBar 而不是 Row:窄屏(或 Web 上回退字体偏宽)时按钮会
+              // 折到下一行,而不是被对话框裁掉——Web 上实测过 Row 只剩"取消"。
+              OverflowBar(
+                alignment: MainAxisAlignment.end,
+                spacing: 8,
                 children: [
                   TextButton(onPressed: () => Navigator.pop(ctx), child: Text(s.cancel)),
-                  const SizedBox(width: 8),
                   FilledButton.icon(
-                    icon: Icon(isDesktop ? Icons.save_alt : Icons.ios_share),
-                    label: Text(isDesktop ? s.saveImage : s.shareImage),
+                    icon: Icon(saveLocally ? Icons.save_alt : Icons.ios_share),
+                    label: Text(saveLocally ? s.saveImage : s.shareImage),
                     onPressed: () async {
                       final png = await capture();
-                      if (isDesktop) {
+                      if (kIsWeb) {
+                        await downloadBytes(png, filename, 'image/png');
+                      } else if (isDesktop) {
                         final loc = await getSaveLocation(
-                          suggestedName: 'mingli-${chart.summaryLine.replaceAll(' ', '')}.png',
+                          suggestedName: filename,
                           acceptedTypeGroups: const [XTypeGroup(label: 'PNG', extensions: ['png'])],
                         );
                         if (loc == null) return;
-                        await File(loc.path).writeAsBytes(png);
+                        await writeFileBytes(loc.path, png);
                         messenger.showSnackBar(SnackBar(content: Text('${s.savedTo}: ${loc.path}')));
                       } else {
-                        final dir = Directory.systemTemp;
-                        final f = File('${dir.path}${Platform.pathSeparator}mingli-card.png');
-                        await f.writeAsBytes(png);
-                        await Share.shareXFiles([XFile(f.path, mimeType: 'image/png')]);
+                        final path = tempFilePath('mingli-card.png');
+                        await writeFileBytes(path, png);
+                        await Share.shareXFiles([XFile(path, mimeType: 'image/png')]);
                       }
                       if (ctx.mounted) Navigator.pop(ctx);
                     },

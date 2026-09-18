@@ -7,14 +7,13 @@
 /// 两端都只返回关键点;照片从不离开进程内存。
 library;
 
-import 'dart:io';
-
 import 'package:flutter/services.dart';
 
 import '../../core/vision/face_features.dart';
 import '../../core/vision/geometry.dart';
 import '../../core/vision/palm_features.dart';
-import 'tflite_landmark_service.dart';
+import '../../platform/native.dart';
+import 'tflite_landmark_service.dart' if (dart.library.js_interop) 'tflite_landmark_service_web.dart';
 
 abstract class LandmarkService {
   /// 检测手部 21 关键点。检测不到返回 null。
@@ -28,7 +27,7 @@ abstract class LandmarkService {
 
   /// 按平台选实现。
   static LandmarkService forPlatform() {
-    if (Platform.isIOS) return IosVisionLandmarkService();
+    if (isIOS) return IosVisionLandmarkService();
     return TfliteLandmarkService();
   }
 }

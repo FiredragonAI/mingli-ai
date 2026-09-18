@@ -10,6 +10,7 @@ import '../core/interpret/local_interpreter_en.dart';
 import '../core/interpret/plain_language.dart';
 import '../l10n/glossary.dart';
 import '../l10n/strings.dart';
+import '../platform/native.dart';
 import '../services/app_state.dart';
 import 'almanac_screen.dart';
 import 'annual_screen.dart';
@@ -388,8 +389,11 @@ class _QuickActions extends StatelessWidget {
       (Icons.star_border, s.zodiac, const ZodiacScreen()),
       (Icons.favorite_outline, s.love, const LoveScreen()),
       (Icons.text_fields, s.naming, const NamingScreen()),
-      (Icons.back_hand_outlined, s.palmAi, const VisionScreen(mode: VisionMode.palm)),
-      (Icons.face_outlined, s.faceAi, const VisionScreen(mode: VisionMode.face)),
+      // Web 上没有端侧模型(tflite 依赖 dart:ffi),手相/面相整个不露出
+      if (supportsOnDeviceVision) ...[
+        (Icons.back_hand_outlined, s.palmAi, const VisionScreen(mode: VisionMode.palm)),
+        (Icons.face_outlined, s.faceAi, const VisionScreen(mode: VisionMode.face)),
+      ],
     ];
     return Row(
       children: [

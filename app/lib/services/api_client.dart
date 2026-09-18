@@ -5,9 +5,10 @@
 library;
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
+
+import '../platform/native.dart';
 
 class ApiException implements Exception {
   ApiException(this.statusCode, this.message);
@@ -74,7 +75,7 @@ class ApiClient {
         'Accept': 'application/json',
         'X-Device-Id': deviceId,
         'X-App-Version': appVersion,
-        'X-Platform': Platform.operatingSystem,
+        'X-Platform': osName,
         if (appToken.isNotEmpty) 'X-App-Token': appToken,
       };
 
@@ -85,10 +86,10 @@ class ApiClient {
       res = await _client
           .post(uri, headers: _headers, body: jsonEncode({...body, 'language': language}))
           .timeout(timeout);
-    } on SocketException catch (e) {
+    } on http.ClientException catch (e) {
+      // 传输层失败(断网、DNS、连接被拒)。package:http 在各平台都统一抛这个:
+      // 原生端包着 SocketException,Web 端包着 fetch 失败——所以不再直接捕 dart:io 的类型。
       throw ApiException(0, '网络不可用:${e.message}');
-    } on HttpException catch (e) {
-      throw ApiException(0, e.message);
     }
 
     if (res.statusCode >= 200 && res.statusCode < 300) {

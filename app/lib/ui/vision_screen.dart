@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
@@ -11,6 +9,7 @@ import '../core/interpret/local_interpreter_en.dart';
 import '../core/vision/face_features.dart';
 import '../core/vision/palm_features.dart';
 import '../l10n/strings.dart';
+import '../platform/native.dart';
 import '../services/app_state.dart';
 import '../services/vision/landmark_service.dart';
 import '../services/vision/palm_line_extractor.dart';
@@ -38,7 +37,7 @@ class _VisionScreenState extends State<VisionScreen> {
   String? _locNote;
 
   bool get isPalm => widget.mode == VisionMode.palm;
-  static bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  static bool get _isDesktop => isDesktop;
 
   /// `image` 包能解码的格式。HEIC/AVIF 等目前解不了,选了会给出明确提示。
   static const _decodable = <String>[
@@ -91,7 +90,7 @@ class _VisionScreenState extends State<VisionScreen> {
       _face = null;
     });
     try {
-      final bytes = await File(path).readAsBytes();
+      final bytes = await readFileBytes(path);
       final decoded = img.decodeImage(bytes);
       if (decoded == null) {
         final ext = path.contains('.') ? path.split('.').last.toLowerCase() : '';
@@ -111,9 +110,7 @@ class _VisionScreenState extends State<VisionScreen> {
     } catch (e) {
       _error = e.toString();
     } finally {
-      try {
-        if (source == ImageSource.camera) await File(path).delete();
-      } catch (_) {}
+      if (source == ImageSource.camera) await deleteFileQuietly(path);
       if (mounted) setState(() => _busy = false);
     }
   }

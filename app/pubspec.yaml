@@ -23,6 +23,7 @@ dependencies:
 
   # 网络
   http: ^1.2.2
+  web: ^1.1.0                        # Web 端 Blob 下载(仅 lib/platform/native_web.dart 用)
 
   # 影像(手相/面相端侧处理)
   camera: ^0.11.0+2

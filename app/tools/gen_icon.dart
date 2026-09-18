@@ -163,5 +163,19 @@ void main() {
     print('ios AppIcon.appiconset  ${iosSizes.length} sizes');
   }
 
+  // ---- Web(PWA 图标 + favicon)----
+  final webDir = Directory('$root/web');
+  if (webDir.existsSync()) {
+    final icons = Directory('${webDir.path}/icons')..createSync(recursive: true);
+    for (final s in [192, 512]) {
+      // 普通图标:圆形透明底,和 Android 圆形启动图标一致,浅色标签栏上不突兀
+      File('${icons.path}/Icon-$s.png').writeAsBytesSync(img.encodePng(drawIcon(s, rounded: true, transparent: true)));
+      // maskable:必须是铺满的不透明方图,系统自己套遮罩;太极圆盘居中,落在 80% 安全区内
+      File('${icons.path}/Icon-maskable-$s.png').writeAsBytesSync(img.encodePng(drawIcon(s)));
+    }
+    File('${webDir.path}/favicon.png').writeAsBytesSync(img.encodePng(drawIcon(48, rounded: true, transparent: true)));
+    print('web/icons 192/512 + maskable, favicon 48');
+  }
+
   print('done');
 }
