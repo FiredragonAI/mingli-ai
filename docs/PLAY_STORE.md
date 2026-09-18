@@ -51,17 +51,18 @@ app/build/app/outputs/bundle/release/app-release.aab
 
 ## 2. 隐私政策(必填,先做这一步)
 
-`docs/privacy-policy.html` 已经写好,三语齐全,针对本应用的实际行为逐条说明(重点是照片不上传、不做人脸识别)。
+**已经在线,不用再手动托管**:`.github/workflows/pages.yml` 每次推 main 都会把 `docs/privacy-policy.html` 和网页版一起发到 GitHub Pages。
 
-把它变成一个公开 URL,最省事的是 GitHub Pages:
+Play Console 里填这个 URL:
 
-1. 代码推到 GitHub(见 `docs/IOS_CLOUD_BUILD.md` 第一步)
-2. 仓库 → **Settings → Pages** → Source 选 `Deploy from a branch`,Branch 选 `main`,目录选 `/docs` → Save
-3. 等一两分钟,URL 形如
-   `https://<你的用户名>.github.io/mingli-ai/privacy-policy.html`
-4. 浏览器打开确认能访问,把这个 URL 填进 Play Console
+```
+https://wanghuolei-dotcom.github.io/mingli-ai/privacy-policy.html
+```
 
-> 注意:GitHub Pages 会把整个 `/docs` 目录公开。本仓库的 `docs/` 里只有文档,没有密钥,可以公开。但要确认 `key.properties` 和 `.jks` **不在** docs 目录里(它们不在)。
+网页版本体在同一站点根:<https://wanghuolei-dotcom.github.io/mingli-ai/>。改隐私政策只需改 `docs/privacy-policy.html` 推上去,几分钟后生效。
+
+> 站点是从仓库 `wanghuolei-dotcom/mingli-ai`(公开)自动构建的。密钥(`key.properties`、`.jks`、`server/.env`)都在 `.gitignore` 里,历史中也从未出现过——推送前核查过。
+
 
 ---
 
