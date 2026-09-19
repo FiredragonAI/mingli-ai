@@ -56,12 +56,12 @@ app/build/app/outputs/bundle/release/app-release.aab
 Play Console 里填这个 URL:
 
 ```
-https://wanghuolei-dotcom.github.io/mingli-ai/privacy-policy.html
+https://firedragonai.github.io/mingli-ai/privacy-policy.html
 ```
 
-网页版本体在同一站点根:<https://wanghuolei-dotcom.github.io/mingli-ai/>。改隐私政策只需改 `docs/privacy-policy.html` 推上去,几分钟后生效。
+网页版本体在同一站点根:<https://firedragonai.github.io/mingli-ai/>。改隐私政策只需改 `docs/privacy-policy.html` 推上去,几分钟后生效。
 
-> 站点是从仓库 `wanghuolei-dotcom/mingli-ai`(公开)自动构建的。密钥(`key.properties`、`.jks`、`server/.env`)都在 `.gitignore` 里,历史中也从未出现过——推送前核查过。
+> 站点是从仓库 `FiredragonAI/mingli-ai`(公开)自动构建的。密钥(`key.properties`、`.jks`、`server/.env`)都在 `.gitignore` 里,历史中也从未出现过——推送前核查过。
 
 
 ---

@@ -3,7 +3,7 @@
 八字 · 五行 · AI 解读 · 每日运势 · 合婚 · 姓名测试 · 黄历 · 星座 · 手相/面相
 
 **平台**:Android + iOS + Windows + Web(Flutter 单一代码库)
-**网页版**:<https://wanghuolei-dotcom.github.io/mingli-ai/> —— 手机/电脑浏览器直接打开,宽屏自动切桌面布局。手相/面相依赖端侧模型,为原生 app 专属,网页版不显示该入口。
+**网页版**:<https://firedragonai.github.io/mingli-ai/> —— 手机/电脑浏览器直接打开,宽屏自动切桌面布局。手相/面相依赖端侧模型,为原生 app 专属,网页版不显示该入口。
 
 **AI**:自建 Node 后端代理 Claude API,客户端不持有密钥
 **影像**:手相/面相在**设备端**提取几何特征,原始照片不出设备
