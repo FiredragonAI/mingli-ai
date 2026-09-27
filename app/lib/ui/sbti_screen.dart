@@ -118,7 +118,7 @@ class _Intro extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     // 介绍页放三个会动的表情当"预告",让人知道测完会拿到什么
-    const teasers = ['GOD', 'CRY', 'TANG'];
+    const teasers = ['SHOW-Y', 'LOOP', 'ZZZ'];
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
