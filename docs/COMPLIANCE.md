@@ -46,3 +46,8 @@
 - 软件著作权(应用商店必需)。
 - ICP 备案(有后端即需)。
 - 若含用户生成内容或社区,需相应审核机制;v1 不含。
+
+## 第三方素材署名
+
+- **Noto Animated Emoji**(Google)—— SBTI 性格测试结果页的动画表情。许可 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),要求署名;app 内结果页底部与本文件均已署名。来源:<https://googlefonts.github.io/noto-emoji-animation/>。
+- **思源宋体 / Source Han Serif**(Adobe)—— 界面字体子集。许可 SIL OFL 1.1。

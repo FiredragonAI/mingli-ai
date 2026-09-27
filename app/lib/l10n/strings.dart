@@ -369,8 +369,8 @@ class S {
 
   // ------------------------------------------------------------ SBTI 玩梗测试
   String get sbtiEntry => _('玩梗', 'SBTI');
-  String get sbtiTitle => _('SBTI 测试', 'SBTI Test');
-  String get sbtiSubtitle => _('玩梗版人格测试', 'The meme personality test');
+  String get sbtiTitle => _('SBTI 性格测试', 'SBTI Personality Test');
+  String get sbtiSubtitle => _('不科学,但准得离谱', 'Unscientific. Weirdly accurate.');
   String get sbtiIntro => _(
         '15 道三选一,两分钟搞定。没有对错,没有科学依据,只有 21 种精准的自嘲。测完可以直接截图发给朋友。',
         '15 quick questions, two minutes tops. No right answers, no science — just 21 precisely aimed roasts. Screenshot the result and send it to a friend.',
@@ -381,6 +381,8 @@ class S {
   String get sbtiYourType => _('你的 SBTI 类型', 'Your SBTI type');
   String sbtiRarity(int pct) => _('稀有度 $pct%', 'Rarity $pct%');
   String sbtiMatch(int pct) => _('匹配度 $pct%', 'Match $pct%');
+  String sbtiExact(int n, int total) => _('精准命中 $n/$total 维', 'Exact hits $n/$total dims');
+  String get sbtiCredit => _('动画表情:Noto Animated Emoji(Google,CC BY 4.0)', 'Animated emoji: Noto Animated Emoji (Google, CC BY 4.0)');
   String get sbtiHighs => _('拉满的', 'Maxed out');
   String get sbtiLows => _('见底的', 'Running on empty');
   String get sbtiEasterEgg => _('命理彩蛋', 'Bazi easter egg');

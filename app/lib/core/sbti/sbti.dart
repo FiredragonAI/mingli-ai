@@ -43,6 +43,8 @@ class SbtiQuestion {
 class SbtiType {
   const SbtiType({
     required this.code,
+    required this.emoji,
+    required this.lottieCode,
     required this.zhName,
     required this.enName,
     required this.zhTagline,
@@ -56,6 +58,12 @@ class SbtiType {
   }) : _profile = profile;
 
   final String code;
+
+  /// 结果页的动画表情:glyph 是兜底显示的字符,lottieCode 对应 assets/emoji/<code>.json
+  /// (Noto Animated Emoji,CC BY 4.0)。动画文件缺失时退回显示 glyph。
+  final String emoji;
+  final String lottieCode;
+
   final String zhName;
   final String enName;
 
@@ -232,6 +240,8 @@ const List<SbtiQuestion> sbtiQuestions = [
 const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'TANG',
+    emoji: '😴',
+    lottieCode: '1f634',
     zhName: '躺平仙',
     enName: 'The Horizontal',
     zhTagline: '你不是懒,你是提前退休。',
@@ -245,6 +255,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'JUAN',
+    emoji: '🔥',
+    lottieCode: '1f525',
     zhName: '卷王附体',
     enName: 'The Grinder',
     zhTagline: '你的休息,是换一种方式工作。',
@@ -258,6 +270,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'GEZI',
+    emoji: '🐦',
+    lottieCode: '1f426',
     zhName: '鸽王',
     enName: 'The Flake',
     zhTagline: '你说"改天",天知道是哪天。',
@@ -271,6 +285,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'SOC',
+    emoji: '🪫',
+    lottieCode: '1faab',
     zhName: '社交省电模式',
     enName: 'Low-Battery Socialite',
     zhTagline: '电量 5%,只够回一个表情。',
@@ -284,6 +300,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'MOUTH',
+    emoji: '🗣',
+    lottieCode: '1f5e3',
     zhName: '嘴上功夫',
     enName: 'All Talk',
     zhTagline: '你的计划,在讲出来的那一刻就完成了。',
@@ -297,6 +315,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'DDL',
+    emoji: '⏰',
+    lottieCode: '23f0',
     zhName: '死线战神',
     enName: 'Deadline Warrior',
     zhTagline: '截止日期不是压力,是燃料。',
@@ -310,6 +330,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'CALC',
+    emoji: '🤑',
+    lottieCode: '1f911',
     zhName: '人间计算器',
     enName: 'The Calculator',
     zhTagline: '你不是抠,你是精确。',
@@ -323,6 +345,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'CRY',
+    emoji: '🎢',
+    lottieCode: '1f3a2',
     zhName: '情绪币',
     enName: 'Volatile Coin',
     zhTagline: '一天之内涨停跌停各一次。',
@@ -336,6 +360,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'STAB',
+    emoji: '🗿',
+    lottieCode: '1f5ff',
     zhName: '稳得可疑',
     enName: 'Suspiciously Stable',
     zhTagline: '你没有情绪,你只有状态。',
@@ -349,6 +375,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'LICK',
+    emoji: '😍',
+    lottieCode: '1f60d',
     zhName: '恋爱脑晚期',
     enName: 'Terminally Lovestruck',
     zhTagline: '对方说"在吗",你已经在选婚纱。',
@@ -362,6 +390,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'HARD',
+    emoji: '😤',
+    lottieCode: '1f624',
     zhName: '嘴硬心软',
     enName: 'Tough Talker',
     zhTagline: '嘴上"随便",心里已经写了三页。',
@@ -375,6 +405,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'XUAN',
+    emoji: '🔮',
+    lottieCode: '1f52e',
     zhName: '万事问水逆',
     enName: "Mercury's Victim",
     zhTagline: '你不是倒霉,你是水逆的忠实用户。',
@@ -388,6 +420,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'BROKE',
+    emoji: '💸',
+    lottieCode: '1f4b8',
     zhName: '月光侠',
     enName: 'Broke Hero',
     zhTagline: '钱只是数字,而你的数字是零。',
@@ -401,6 +435,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'CEO',
+    emoji: '🧐',
+    lottieCode: '1f9d0',
     zhName: '精神股东',
     enName: 'Armchair CEO',
     zhTagline: '公司不听你的,是公司的损失。',
@@ -414,6 +450,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'NINJA',
+    emoji: '🐢',
+    lottieCode: '1f422',
     zhName: '忍者神龟',
     enName: 'The Endurer',
     zhTagline: '你什么都能忍,除了别人问你"还好吗"。',
@@ -427,6 +465,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'BUDDHA',
+    emoji: '😇',
+    lottieCode: '1f607',
     zhName: '假佛系',
     enName: 'Faux Zen',
     zhTagline: '一切随缘,但缘分最好现在就来。',
@@ -440,6 +480,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'BURN',
+    emoji: '✨',
+    lottieCode: '2728',
     zhName: '三分钟热度永动机',
     enName: 'The Spark',
     zhTagline: '你的热情从不熄灭,只是每次点燃的是新东西。',
@@ -453,6 +495,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'ACT',
+    emoji: '🎭',
+    lottieCode: '1f3ad',
     zhName: '人生演技派',
     enName: 'Method Actor',
     zhTagline: '你的人生没有观众,但你从没停过演。',
@@ -466,6 +510,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'SUS',
+    emoji: '🫣',
+    lottieCode: '1fae3',
     zhName: '怂但不认',
     enName: 'Denial Mode',
     zhTagline: '你不是怂,你是"战略性回避"。',
@@ -479,6 +525,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'GOD',
+    emoji: '😎',
+    lottieCode: '1f60e',
     zhName: '自信过头',
     enName: 'God Mode',
     zhTagline: '世界上只有两种人:你,和还没认识你的人。',
@@ -492,6 +540,8 @@ const List<SbtiType> sbtiTypes = [
   ),
   SbtiType(
     code: 'NPC',
+    emoji: '🙂',
+    lottieCode: '1f642',
     zhName: '路人甲',
     enName: 'Background NPC',
     zhTagline: '你哪都不极端,这本身就很极端。',

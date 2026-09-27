@@ -16,6 +16,12 @@ import 'package:mingli_ai/ui/sbti_screen.dart';
 
 final _cjk = RegExp(r'[一-鿿]');
 
+/// Lottie 动画是循环的,pumpAndSettle 永远等不到"稳定";推两帧就够让 setState 生效。
+Future<void> settle(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 300));
+}
+
 void main() {
   testWidgets('英文界面:介绍页、15 道题、结果页全程英文,且结果页无汉字', (WidgetTester tester) async {
     // 结果页是 ListView,给个够高的画布让所有卡片都进树,免得 find.text 找不到折叠区
@@ -34,14 +40,14 @@ void main() {
         child: const MaterialApp(home: SbtiScreen()),
       ),
     );
-    await tester.pumpAndSettle();
+    await settle(tester);
 
     // 介绍页
-    expect(find.text('SBTI Test'), findsOneWidget);
-    expect(find.text('The meme personality test'), findsOneWidget);
+    expect(find.text('SBTI Personality Test'), findsOneWidget);
+    expect(find.text('Unscientific. Weirdly accurate.'), findsOneWidget);
     expect(find.text('Start'), findsOneWidget);
     await tester.tap(find.text('Start'));
-    await tester.pumpAndSettle();
+    await settle(tester);
 
     // 15 题:每题都显示英文题干与英文选项,选第一个
     expect(sbtiQuestions.length, 15);
@@ -54,7 +60,7 @@ void main() {
         expect(find.text(o.en), findsOneWidget, reason: '第 ${i + 1} 题选项「${o.en}」');
       }
       await tester.tap(find.text(q.options[0].en));
-      await tester.pumpAndSettle();
+      await settle(tester);
     }
 
     // 结果页:和引擎算出来的一致
@@ -77,7 +83,7 @@ void main() {
 
     // 再测一次要回到介绍页
     await tester.tap(find.text('Retake'));
-    await tester.pumpAndSettle();
+    await settle(tester);
     expect(find.text('Question 1 of 15'), findsOneWidget);
   });
 }

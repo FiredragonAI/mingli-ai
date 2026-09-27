@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -10,10 +11,10 @@ import '../services/app_state.dart';
 import 'theme.dart';
 import 'widgets/disclaimer.dart';
 
-/// SBTI 玩梗测试:介绍 → 30 题逐题作答 → 结果页(可分享)。
+/// SBTI 性格测试:介绍 → 15 题逐题作答 → 结果页(可分享)。
 ///
 /// 全程本机、确定性,不调任何 AI;它是给人截图转发用的社交货币,
-/// 所以结果页刻意做成"一屏装下、一眼看懂"。
+/// 所以结果页刻意做成"一屏装下、一眼看懂":大动画 + 类型码 + 名字 + 一句话 + 匹配度。
 class SbtiScreen extends StatefulWidget {
   const SbtiScreen({super.key});
 
@@ -80,6 +81,32 @@ class _SbtiScreenState extends State<SbtiScreen> {
   }
 }
 
+// ---------------------------------------------------------------- 动画表情
+
+/// 类型的动画表情。动画文件没打进包(或加载失败)时退回显示表情字符,
+/// 页面永远不会因为缺一个 JSON 而空一块。
+class _TypeEmoji extends StatelessWidget {
+  const _TypeEmoji(this.type, {this.size = 160});
+  final SbtiType type;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget glyph(BuildContext _, [Object? __, StackTrace? ___]) => SizedBox(
+          width: size,
+          height: size,
+          child: Center(child: Text(type.emoji, style: TextStyle(fontSize: size * 0.62, height: 1))),
+        );
+    return Lottie.asset(
+      'assets/emoji/${type.lottieCode}.json',
+      width: size,
+      height: size,
+      repeat: true,
+      errorBuilder: glyph,
+    );
+  }
+}
+
 // ---------------------------------------------------------------- 介绍
 
 class _Intro extends StatelessWidget {
@@ -90,6 +117,8 @@ class _Intro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // 介绍页放三个会动的表情当"预告",让人知道测完会拿到什么
+    const teasers = ['GOD', 'CRY', 'TANG'];
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -98,6 +127,17 @@ class _Intro extends StatelessWidget {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (final code in teasers)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: _TypeEmoji(sbtiTypes.firstWhere((t) => t.code == code), size: 72),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
                 Text('SBTI', style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w800, color: AppColors.cinnabar, letterSpacing: 4)),
                 Text(s.sbtiSubtitle, style: theme.textTheme.titleMedium),
                 const SizedBox(height: 16),
@@ -198,42 +238,43 @@ class _Result extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        // ---- 头图:动画 + 类型码 + 名字 + 一句话 + 匹配度。这块就是给截图的
         Card(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
             child: Column(
               children: [
                 Text(s.sbtiYourType, style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.outline)),
-                const SizedBox(height: 6),
-                Text(t.code, style: theme.textTheme.displayMedium?.copyWith(fontWeight: FontWeight.w800, color: AppColors.cinnabar, letterSpacing: 2)),
+                const SizedBox(height: 4),
+                _TypeEmoji(t),
+                const SizedBox(height: 4),
+                Text(t.code, style: theme.textTheme.displayMedium?.copyWith(fontWeight: FontWeight.w800, color: AppColors.jade, letterSpacing: 2, height: 1.05)),
                 Text(en ? t.enName : s.text(t.zhName), style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 10),
+                const SizedBox(height: 14),
+                Text(
+                  en ? t.enTagline : s.text(t.zhTagline),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.titleMedium?.copyWith(fontStyle: FontStyle.italic, height: 1.4, color: theme.colorScheme.onSurfaceVariant),
+                ),
+                const SizedBox(height: 14),
                 Wrap(
                   spacing: 8,
                   runSpacing: 6,
                   alignment: WrapAlignment.center,
                   children: [
                     Chip(label: Text(s.sbtiRarity(t.rarityPct)), backgroundColor: AppColors.gold.withValues(alpha: 0.2)),
-                    Chip(label: Text(s.sbtiMatch(result.matchPct))),
+                    Chip(label: Text('${s.sbtiMatch(result.matchPct)} · ${s.sbtiExact(result.exactMatches, sbtiDimensions.length)}')),
                   ],
                 ),
-                const SizedBox(height: 16),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    border: Border(left: BorderSide(color: AppColors.cinnabar, width: 3)),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 12, top: 2, bottom: 2),
-                    child: Text(
-                      en ? t.enTagline : s.text(t.zhTagline),
-                      style: theme.textTheme.titleMedium?.copyWith(fontStyle: FontStyle.italic, height: 1.4),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(en ? t.enRoast : s.text(t.zhRoast), style: theme.textTheme.bodyMedium?.copyWith(height: 1.6)),
               ],
             ),
+          ),
+        ),
+
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(en ? t.enRoast : s.text(t.zhRoast), style: theme.textTheme.bodyMedium?.copyWith(height: 1.6)),
           ),
         ),
 
@@ -289,6 +330,8 @@ class _Result extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(s.sbtiFooter, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline), textAlign: TextAlign.center),
+        // CC BY 4.0 要求署名
+        Text(s.sbtiCredit, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline), textAlign: TextAlign.center),
         const Disclaimer(),
       ],
     );
