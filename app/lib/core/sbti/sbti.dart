@@ -1,7 +1,7 @@
 /// SBTI 玩梗测试(Silly Big Type Indicator)。
 ///
 /// 2026 年 4 月刷屏的那个"MBTI 过时了,SBTI 来了"的戏仿测试的同款玩法:
-/// 30 道三选一,15 个维度,每维两题;维度分压成低/中/高三档,
+/// 15 道三选一,15 个维度,每维一题;选项分值 1/2/3 就是低/中/高三档,
 /// 再和一组人格模板比对——先看总差最小,再看完全命中的维度最多。
 /// 题目、维度、类型和文案都是本项目原创,只借了"玩法"和"自嘲的味道"。
 ///
@@ -90,7 +90,7 @@ class SbtiResult {
 
   final SbtiType type;
 
-  /// 每维 2–6 分。
+  /// 每维 1–3 分。
   final List<int> scores;
   final List<SbtiTier> tiers;
 
@@ -145,7 +145,7 @@ const List<SbtiDimension> sbtiDimensions = [
 // ---------------------------------------------------------------- 题目
 
 
-/// 30 题,每维两题;顺序故意把五个板块打散,连着答不容易看出在测什么。
+/// 15 题,每维一题;顺序故意把五个板块打散,连着答不容易看出在测什么。
 const List<SbtiQuestion> sbtiQuestions = [
   // 第一轮
   SbtiQuestion(0, '照镜子的时候,你通常在想:', 'Looking in the mirror, you usually think:', [
@@ -223,82 +223,7 @@ const List<SbtiQuestion> sbtiQuestions = [
     SbtiOption('"在,怎么了"', '"Yes, what is up"', 1),
     SbtiOption('心跳快了一点', 'Heart rate ticks up slightly', 2),
   ]),
-  // 第二轮
-  SbtiQuestion(0, '看自己的照片时,你:', 'Looking at photos of yourself, you:', [
-    SbtiOption('越看越顺眼', 'They grow on you every time', 3),
-    SbtiOption('这拍得也太丑了', 'Who took this terrible picture', 1),
-    SbtiOption('有的行,有的不行', 'Some work, some do not', 2),
-  ]),
-  SbtiQuestion(3, '发的动态半天没人点赞,你:', 'Your post gets no likes for hours. You:', [
-    SbtiOption('删了', 'Delete it', 3),
-    SbtiOption('无所谓,发给自己看的', 'Whatever, it was for you anyway', 1),
-    SbtiOption('刷新几次', 'Refresh a few times', 2),
-  ]),
-  SbtiQuestion(6, '朋友说"最近好累",你的回应:', 'A friend says they are exhausted. You:', [
-    SbtiOption('累说明在进步', 'Tired means growing', 3),
-    SbtiOption('那就歇着,别硬撑', 'Then rest; do not push', 1),
-    SbtiOption('我也累', 'Same', 2),
-  ]),
-  SbtiQuestion(9, '购物车里的东西,你一般:', 'Items in your shopping cart usually:', [
-    SbtiOption('比三家、等折扣、算凑单', 'Get price-compared, discount-timed, and bundle-optimised', 3),
-    SbtiOption('想要就买', 'Get bought when wanted', 1),
-    SbtiOption('放几天,还想要再买', 'Sit a few days; bought if still wanted', 2),
-  ]),
-  SbtiQuestion(12, '一个人的周末,你的感受:', 'A weekend entirely alone feels:', [
-    SbtiOption('太爽了,充电', 'Amazing. Recharging', 1),
-    SbtiOption('有点闷,找人出来', 'A bit dull; time to call someone', 3),
-    SbtiOption('一天可以,两天有点多', 'One day is great, two is a lot', 2),
-  ]),
-  SbtiQuestion(1, '闹钟响了,你:', 'The alarm goes off. You:', [
-    SbtiOption('起', 'Get up', 1),
-    SbtiOption('再睡五分钟(×6)', 'Five more minutes (times six)', 3),
-    SbtiOption('再睡五分钟(×1)', 'Five more minutes (once)', 2),
-  ]),
-  SbtiQuestion(4, '朋友形容你的情绪,更像:', 'Friends would describe your moods as:', [
-    SbtiOption('恒温', 'Thermostat', 3),
-    SbtiOption('天气', 'Weather', 2),
-    SbtiOption('股市', 'The stock market', 1),
-  ]),
-  SbtiQuestion(7, '连续倒霉三天,你会觉得:', 'Three unlucky days in a row. You conclude:', [
-    SbtiOption('水逆了/犯太岁了', 'Mercury is in retrograde, or it is a Tai Sui year', 3),
-    SbtiOption('巧合', 'Coincidence', 1),
-    SbtiOption('虽然不信,但还是查了一下', 'You do not believe it, but you looked it up anyway', 2),
-  ]),
-  SbtiQuestion(10, '你开始过的爱好里,坚持超过一年的:', 'Of the hobbies you have started, those lasting over a year:', [
-    SbtiOption('基本都坚持了', 'Most of them', 1),
-    SbtiOption('想不起来有哪个', 'None come to mind', 3),
-    SbtiOption('一两个', 'One or two', 2),
-  ]),
-  SbtiQuestion(13, '"改天约"这句话,你说的时候:', 'When you say "let us do this some other day", you:', [
-    SbtiOption('是认真的,并且会定日子', 'Mean it, and will pick a date', 1),
-    SbtiOption('就是客气', 'Are being polite', 3),
-    SbtiOption('五五开', 'Fifty-fifty', 2),
-  ]),
-  SbtiQuestion(2, '出门旅行,你的行李:', 'Packing for a trip, your luggage is:', [
-    SbtiOption('前一晚随便塞', 'Stuffed the night before', 3),
-    SbtiOption('提前一周列清单打包', 'Listed and packed a week early', 1),
-    SbtiOption('提前一天,大概齐', 'Done the day before, roughly', 2),
-  ]),
-  SbtiQuestion(5, '看电影哭的次数:', 'How often you cry at movies:', [
-    SbtiOption('片头曲就能哭', 'The opening credits can do it', 3),
-    SbtiOption('基本不哭', 'Rarely', 1),
-    SbtiOption('看片子', 'Depends on the film', 2),
-  ]),
-  SbtiQuestion(8, '别人指出你的错误,你的第一句话:', 'Someone points out your mistake. Your first words:', [
-    SbtiOption('"我知道啊"', '"I know"', 3),
-    SbtiOption('"啊,谢谢"', '"Oh, thanks"', 1),
-    SbtiOption('"嗯……"', '"Hmm…"', 2),
-  ]),
-  SbtiQuestion(11, '看比赛/看剧的时候,你:', 'Watching a match or a show, you:', [
-    SbtiOption('全程指挥,"换人!这不对!"', 'Direct the whole thing. "Sub him off! Wrong call!"', 3),
-    SbtiOption('安静看', 'Watch quietly', 1),
-    SbtiOption('偶尔吐槽', 'Occasional commentary', 2),
-  ]),
-  SbtiQuestion(14, '你对"暧昧"的容忍度:', 'Your tolerance for a situationship:', [
-    SbtiOption('可以暧昧一辈子', 'Could stay in one forever', 3),
-    SbtiOption('三天不表态就拉黑', 'Three days without clarity and they are blocked', 1),
-    SbtiOption('一两个月吧', 'A month or two', 2),
-  ]),
+  // 15 题就够:每维一题,分值 1/2/3 直接对应低/中/高三档。
 ];
 
 // ---------------------------------------------------------------- 类型
@@ -582,9 +507,9 @@ const List<SbtiType> sbtiTypes = [
 
 // ---------------------------------------------------------------- 评分
 
-SbtiTier _tierOf(int score) => score <= 3 ? SbtiTier.low : (score >= 5 ? SbtiTier.high : SbtiTier.mid);
+SbtiTier _tierOf(int score) => score <= 1 ? SbtiTier.low : (score >= 3 ? SbtiTier.high : SbtiTier.mid);
 
-/// [answers] 是 30 个选项下标(0–2),顺序同 [sbtiQuestions]。
+/// [answers] 是 15 个选项下标(0–2),顺序同 [sbtiQuestions]。
 SbtiResult sbtiEvaluate(List<int> answers) {
   if (answers.length != sbtiQuestions.length) {
     throw ArgumentError('需要 ${sbtiQuestions.length} 个答案,收到 ${answers.length}');

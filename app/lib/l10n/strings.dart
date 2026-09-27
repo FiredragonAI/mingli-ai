@@ -372,8 +372,8 @@ class S {
   String get sbtiTitle => _('SBTI 测试', 'SBTI Test');
   String get sbtiSubtitle => _('玩梗版人格测试', 'The meme personality test');
   String get sbtiIntro => _(
-        '30 道三选一,大约 3 分钟。没有对错,没有科学依据,只有 21 种精准的自嘲。测完可以直接截图发给朋友。',
-        '30 quick questions, about 3 minutes. No right answers, no science — just 21 precisely aimed roasts. Screenshot the result and send it to a friend.',
+        '15 道三选一,两分钟搞定。没有对错,没有科学依据,只有 21 种精准的自嘲。测完可以直接截图发给朋友。',
+        '15 quick questions, two minutes tops. No right answers, no science — just 21 precisely aimed roasts. Screenshot the result and send it to a friend.',
       );
   String get sbtiStart => _('开始测试', 'Start');
   String sbtiQuestionNo(int i, int n) => _('第 $i / $n 题', 'Question $i of $n');

@@ -8,9 +8,10 @@ import 'package:mingli_ai/core/bazi/five_elements.dart';
 import 'package:mingli_ai/core/sbti/sbti.dart';
 
 void main() {
-  test('15 个维度、30 道题、每维正好两题、每题三个选项且分值恰为 1/2/3', () {
+  test('15 个维度、15 道题(用户要求不超过 20)、每维正好一题、每题三个选项且分值恰为 1/2/3', () {
     expect(sbtiDimensions.length, 15);
-    expect(sbtiQuestions.length, 30);
+    expect(sbtiQuestions.length, 15);
+    expect(sbtiQuestions.length, lessThanOrEqualTo(20));
     final perDim = List<int>.filled(15, 0);
     for (final q in sbtiQuestions) {
       expect(q.dim, inInclusiveRange(0, 14));
@@ -18,7 +19,7 @@ void main() {
       expect(q.options.length, 3);
       expect(q.options.map((o) => o.score).toSet(), {1, 2, 3}, reason: '题目「${q.zh}」的选项分值不是 1/2/3 各一个');
     }
-    expect(perDim, everyElement(2));
+    expect(perDim, everyElement(1));
   });
 
   test('模板 15 位、互不重复、稀有度加起来正好 100', () {
@@ -35,7 +36,7 @@ void main() {
   test('每个类型都能被命中:按模板作答就得到它自己', () {
     for (final t in sbtiTypes) {
       final p = t.profile;
-      // 每维两题:低档答 1+1,中档答 2+2,高档答 3+3
+      // 每维一题:选 1 分的选项就是低档,2 分中档,3 分高档
       final want = {SbtiTier.low: 1, SbtiTier.mid: 2, SbtiTier.high: 3};
       final answers = <int>[];
       for (final q in sbtiQuestions) {
@@ -50,15 +51,15 @@ void main() {
     }
   });
 
-  test('评分确定、分数在 2–6 之间、越界输入会报错', () {
-    final all1 = List.filled(30, 0).asMap().entries.map((e) => sbtiQuestions[e.key].options.indexWhere((o) => o.score == 1)).toList();
+  test('评分确定、分数在 1–3 之间、越界输入会报错', () {
+    final all1 = List.filled(15, 0).asMap().entries.map((e) => sbtiQuestions[e.key].options.indexWhere((o) => o.score == 1)).toList();
     final r1 = sbtiEvaluate(all1);
     final r2 = sbtiEvaluate(all1);
     expect(r1.type.code, r2.type.code);
-    expect(r1.scores, everyElement(inInclusiveRange(2, 6)));
+    expect(r1.scores, everyElement(inInclusiveRange(1, 3)));
     expect(r1.tiers, everyElement(SbtiTier.low));
-    expect(() => sbtiEvaluate(List.filled(29, 0)), throwsArgumentError);
-    expect(() => sbtiEvaluate(List.filled(30, 3)), throwsArgumentError);
+    expect(() => sbtiEvaluate(List.filled(14, 0)), throwsArgumentError);
+    expect(() => sbtiEvaluate(List.filled(15, 3)), throwsArgumentError);
   });
 
   test('三语没有漏翻:题目、选项、维度、类型的英文都非空且和中文不同', () {
@@ -86,7 +87,7 @@ void main() {
       expect(sbtiDayMasterLine(e, en: false), isNotEmpty);
       expect(sbtiDayMasterLine(e, en: true), isNotEmpty);
     }
-    final r = sbtiEvaluate(List.filled(30, 0));
+    final r = sbtiEvaluate(List.filled(15, 0));
     expect(sbtiShareText(r, en: false), contains(r.type.code));
     expect(sbtiShareText(r, en: true), contains(r.type.code));
   });
