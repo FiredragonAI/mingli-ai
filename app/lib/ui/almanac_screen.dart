@@ -9,6 +9,7 @@ import '../l10n/strings.dart';
 import '../services/app_state.dart';
 import 'theme.dart';
 import 'widgets/ai_reading_card.dart';
+import 'widgets/more_ai_card.dart';
 import 'widgets/disclaimer.dart';
 
 class AlmanacScreen extends StatefulWidget {
@@ -156,6 +157,7 @@ class _AlmanacScreenState extends State<AlmanacScreen> {
                 load: (api) => api.interpretAlmanac(a.toJson(), chart?.toJson()),
                 localText: () => s.en ? enInterpretAlmanac(a, chart: chart) : localInterpretAlmanac(a, chart: chart),
               ),
+              MoreAiCard(kind: 'almanac', body: () => {'almanac': a.toJson(), 'chart': chart?.toJson()}),
               const Disclaimer(),
             ],
           ),

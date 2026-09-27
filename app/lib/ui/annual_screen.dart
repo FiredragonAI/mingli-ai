@@ -10,6 +10,7 @@ import '../l10n/strings.dart';
 import '../services/app_state.dart';
 import 'theme.dart';
 import 'widgets/ai_reading_card.dart';
+import 'widgets/more_ai_card.dart';
 import 'widgets/disclaimer.dart';
 
 /// 流年运势:选年份 → 总评、太岁、四项、十二流月柱状图、依据、AI。
@@ -227,6 +228,7 @@ class _AnnualScreenState extends State<AnnualScreen> {
                 load: (api) => api.interpretAnnual(chart.toJson(), a.toJson()),
                 localText: () => s.en ? enInterpretAnnual(chart, a) : localInterpretAnnual(chart, a),
               ),
+              MoreAiCard(kind: 'annual', body: () => {'chart': chart.toJson(), 'annual': a.toJson()}),
               const Disclaimer(),
             ],
           ),

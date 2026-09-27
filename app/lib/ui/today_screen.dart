@@ -21,6 +21,7 @@ import 'sbti_screen.dart';
 import 'theme.dart';
 import 'vision_screen.dart';
 import 'widgets/ai_reading_card.dart';
+import 'widgets/more_ai_card.dart';
 import 'widgets/disclaimer.dart';
 import 'widgets/share_card.dart';
 import 'zodiac_screen.dart';
@@ -126,10 +127,15 @@ class TodayScreen extends StatelessWidget {
     );
   }
 
-  Widget _ai(_Data d) => AiReadingCard(
+  Widget _ai(_Data d) => Column(
+        children: [
+          AiReadingCard(
         title: d.s.aiDaily,
         load: (api) => api.interpretDaily(d.chart.toJson(), d.today.toJson()),
         localText: () => d.s.en ? enInterpretDaily(d.chart, d.today) : localInterpretDaily(d.chart, d.today),
+          ),
+          MoreAiCard(kind: 'daily', body: () => {'chart': d.chart.toJson(), 'fortune': d.today.toJson()}),
+        ],
       );
 
   Widget _factors(BuildContext context, _Data d) => ExpansionTile(

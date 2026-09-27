@@ -170,6 +170,15 @@ scores 三项评分、pattern 感情模式、spouseProfile 对方画像、window
 ## 一句话 —— 轻松、具体`,
 };
 
+/** 「更多 AI 解读」:在常规解读之外补充新角度,不重复常规结构。 */
+const MORE_SUFFIX = `
+
+【这是「更多 AI 解读」,读者已经看过一份常规解读。不要重复常规解读的结构与结论,只补充它通常不会讲的东西:】
+1. 一个反直觉的观察:从数据里找一处"表面是 A、其实指向 B"的地方,说清依据。
+2. 三个具体场景各一条建议:工作、亲密关系、独处时的自己;每条都要具体到一个可以明天就做的动作。
+3. 一句"写给一年后的你":第二人称、现在时、不超过 30 字,可以被截图。
+开头三行的格式要求照旧(一级标题 + 引用块),然后按上面三节用二级标题分段,总长控制在常规解读的六成以内。`;
+
 export function systemPrompt(kind: Kind): string {
   return `${BASE}\n\n${PER_KIND[kind]}`;
 }
@@ -179,10 +188,11 @@ export function userMessage(kind: Kind, payload: Record<string, unknown>): strin
   const parts: string[] = [];
   for (const [key, value] of Object.entries(payload)) {
     if (value === null || value === undefined) continue;
-    if (key === "language" || key === "focus") continue;
+    if (key === "language" || key === "focus" || key === "mode" || key === "provider") continue;
     parts.push(`### ${labelOf(key)}\n\`\`\`json\n${JSON.stringify(value, null, 1)}\n\`\`\``);
   }
   const focus = typeof payload.focus === "string" ? `\n\n用户特别关心:${payload.focus}` : "";
+  const more = payload.mode === "more" ? MORE_SUFFIX : "";
   const lang = typeof payload.language === "string" ? payload.language : "zh-Hans";
   const langLine =
     lang === "en"
@@ -190,7 +200,7 @@ export function userMessage(kind: Kind, payload: Record<string, unknown>): strin
       : lang === "zh-Hant"
         ? "\n\n【输出语言:zh-Hant — 全文用繁体中文(台湾用字)】"
         : "";
-  return `以下是已推算完成的数据,请按系统要求解读(任务类型:${kind})。${focus}\n\n${parts.join("\n\n")}${langLine}`;
+  return `以下是已推算完成的数据,请按系统要求解读(任务类型:${kind})。${focus}\n\n${parts.join("\n\n")}${langLine}${more}`;
 }
 
 function labelOf(key: string): string {

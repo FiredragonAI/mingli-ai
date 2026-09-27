@@ -12,6 +12,7 @@ import '../services/app_state.dart';
 import 'birth_input_screen.dart';
 import 'theme.dart';
 import 'widgets/ai_reading_card.dart';
+import 'widgets/more_ai_card.dart';
 import 'widgets/disclaimer.dart';
 import 'widgets/element_radar.dart';
 import 'widgets/luck_timeline.dart';
@@ -65,6 +66,7 @@ class ChartScreen extends StatelessWidget {
                 load: (api) => api.interpretBazi(chart.toJson()),
                 localText: () => s.en ? enInterpretBazi(chart) : localInterpretBazi(chart),
               ),
+              MoreAiCard(kind: 'bazi', body: () => {'chart': chart.toJson()}),
               const Disclaimer(),
             ],
           ),

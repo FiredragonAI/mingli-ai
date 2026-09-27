@@ -93,6 +93,8 @@ export function geminiProvider(): LlmProvider {
     const detail = (await res.text()).slice(0, 500);
     log.error({ status: res.status, detail }, "Gemini API error");
     if (res.status === 401 || res.status === 403) throw new ProviderError("auth", res.status, detail);
+    // Gemini 对无效 key 回的是 400 "API key not valid",不是 401;按配置错误处理,别让人以为是请求体的问题
+    if (res.status === 400 && /API key not valid|API_KEY_INVALID/i.test(detail)) throw new ProviderError("auth", res.status, detail);
     if (res.status === 429) throw new ProviderError("rate", res.status, detail);
     if (res.status === 400 || res.status === 404) throw new ProviderError("bad_request", res.status, detail);
     throw new ProviderError("upstream", res.status, detail);

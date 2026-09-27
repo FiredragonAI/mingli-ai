@@ -11,6 +11,7 @@ import '../services/app_state.dart';
 import 'marriage_screen.dart' show MarriagePairBody;
 import 'theme.dart';
 import 'widgets/ai_reading_card.dart';
+import 'widgets/more_ai_card.dart';
 import 'widgets/disclaimer.dart';
 
 /// 感情:「我的婚缘」(只用本人命盘)在前,「合婚」(填对方)在后。
@@ -241,6 +242,7 @@ class _SoloBody extends StatelessWidget {
               load: (api) => api.interpretLove(chart.toJson(), f.toJson()),
               localText: () => s.en ? enInterpretLove(chart, f) : localInterpretLove(chart, f),
             ),
+            MoreAiCard(kind: 'love', body: () => {'chart': chart.toJson(), 'love': f.toJson()}),
             const Disclaimer(),
           ],
         ),

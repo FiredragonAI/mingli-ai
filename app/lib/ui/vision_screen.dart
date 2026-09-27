@@ -14,6 +14,7 @@ import '../services/app_state.dart';
 import '../services/vision/landmark_service.dart';
 import '../services/vision/palm_line_extractor.dart';
 import 'widgets/ai_reading_card.dart';
+import 'widgets/more_ai_card.dart';
 import 'widgets/disclaimer.dart';
 
 enum VisionMode { palm, face }
@@ -206,6 +207,7 @@ class _VisionScreenState extends State<VisionScreen> {
                       ? (s.en ? enInterpretPalm(_palm!) : localInterpretPalm(_palm!))
                       : (s.en ? enInterpretFace(_face!) : localInterpretFace(_face!)),
                 ),
+                MoreAiCard(kind: isPalm ? 'palm' : 'face', body: () => {'features': features, 'chart': chart?.toJson()}),
               ],
               const Disclaimer(),
             ],

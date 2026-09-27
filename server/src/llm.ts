@@ -4,6 +4,9 @@
  * 每家实现只负责"给系统提示词和对话,返回文本"(LlmProvider.complete);
  * 安全检查、越界改写、按标题拆段、加免责脚注这些与厂商无关的步骤都在这里,
  * 换模型不会漏掉任何一道护栏。
+ *
+ * 两家可以同时配置:默认走 config.provider;请求体里带 provider 字段可以指定另一家
+ * (客户端的「更多 AI 解读」就是固定要 Gemini)。没配置密钥的那家不会被构造,也不会被选中。
  */
 import pino from "pino";
 
@@ -43,6 +46,8 @@ export interface InterpretResult {
   text: string;
   sections: Record<string, string>;
   model: string;
+  /** 实际用的是哪家,客户端据此打标 */
+  provider: ProviderName;
   usage: { input: number; output: number; cacheRead: number };
 }
 
@@ -64,33 +69,67 @@ export class ProviderError extends Error {
   }
 }
 
-export const provider: LlmProvider = config.provider === "gemini" ? geminiProvider() : claudeProvider();
+/** 请求指定了一家没配置的模型 */
+export class ProviderUnavailableError extends Error {
+  constructor(public readonly name: ProviderName) {
+    super(`模型 ${name} 未配置`);
+  }
+}
 
-export async function interpret(kind: Kind, payload: Record<string, unknown>): Promise<InterpretResult> {
+// 只构造有凭据的那家。Claude 的凭据可能来自 `ant auth login` 的本地档案,环境里没 key 也算"可能有",
+// 所以 Claude 在"没有明确选 Gemini 独占"时总是构造;Gemini 则必须有 GEMINI_API_KEY。
+const providers = new Map<ProviderName, LlmProvider>();
+if (config.geminiApiKey) providers.set("gemini", geminiProvider());
+if (config.provider === "claude" || process.env.ANTHROPIC_API_KEY) providers.set("claude", claudeProvider());
+if (!providers.has(config.provider)) {
+  // 默认那家都没法构造(比如 LLM_PROVIDER=gemini 但没给 key):照旧构造出来,让 probe 在启动时把问题喊出来
+  providers.set(config.provider, config.provider === "gemini" ? geminiProvider() : claudeProvider());
+}
+
+/** 默认那家 */
+export const provider: LlmProvider = providers.get(config.provider)!;
+
+export function availableProviders(): ProviderName[] {
+  return [...providers.keys()];
+}
+
+export function providerNamed(name: ProviderName): LlmProvider {
+  const p = providers.get(name);
+  if (!p) throw new ProviderUnavailableError(name);
+  return p;
+}
+
+export async function interpret(
+  kind: Kind,
+  payload: Record<string, unknown>,
+  opts: { provider?: ProviderName } = {},
+): Promise<InterpretResult> {
+  const llm = opts.provider ? providerNamed(opts.provider) : provider;
   const system = systemPrompt(kind);
   const user = userMessage(kind, payload);
 
-  const first = await provider.complete(system, [{ role: "user", content: user }], { effort: "high" });
+  const first = await llm.complete(system, [{ role: "user", content: user }], { effort: "high" });
   let text = first.text.trim();
 
   // 输出兜底:命中越界表述就要求改写一次
   const verdict = checkOutput(text);
   if (!verdict.ok) {
     log.warn({ kind, hits: verdict.hits }, "output hit safety filter, rewriting");
-    text = await rewrite(system, user, text);
+    text = await rewrite(llm, system, user, text);
   }
 
-  log.info({ kind, provider: provider.name, model: first.model, ...first.usage }, "interpreted");
+  log.info({ kind, provider: llm.name, model: first.model, mode: payload.mode ?? "default", ...first.usage }, "interpreted");
 
   return {
     text: text + aiFooter,
     sections: splitSections(text),
     model: first.model,
+    provider: llm.name,
     usage: first.usage,
   };
 }
 
-async function rewrite(system: string, user: string, draft: string): Promise<string> {
+async function rewrite(llm: LlmProvider, system: string, user: string, draft: string): Promise<string> {
   const turns: Turn[] = [
     { role: "user", content: user },
     { role: "assistant", content: draft },
@@ -101,7 +140,7 @@ async function rewrite(system: string, user: string, draft: string): Promise<str
         "请保留结构与全部依据,只改写越界句子,输出完整修订版。",
     },
   ];
-  const { text } = await provider.complete(system, turns, { effort: "medium" });
+  const { text } = await llm.complete(system, turns, { effort: "medium" });
   // 改写后仍越界则直接剔除命中句,宁可少说
   const verdict = checkOutput(text.trim());
   if (verdict.ok) return text.trim();
@@ -123,6 +162,7 @@ function splitSections(md: string): Record<string, string> {
   return out;
 }
 
+/** 健康检查:默认那家能不能用。 */
 export function probe(): Promise<boolean> {
   return provider.probe();
 }

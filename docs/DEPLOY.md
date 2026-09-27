@@ -66,6 +66,29 @@ docker build -t mingli-server . && docker run -d --restart=always -p 8787:8787 -
 
 > Gemini 走 REST(`generateContent`),不引 SDK;推理力度(`CLAUDE_EFFORT`)只对 Claude 生效。
 
+## Gemini 三步上线(网页版「更多 AI 解读」)
+
+现有的 AI 解读卡不受影响(仍是本机规则引擎,或你配置的服务器);「更多 AI 解读」这张卡**只走 Gemini**,服务器没起来时它会灰掉并提示,不会报错。
+
+**第一步:拿 key。** <https://aistudio.google.com/apikey> 创建一个 API key,先别关页面。
+
+**第二步:在 Render 起服务(约 5 分钟,免费档即可)。**
+1. <https://render.com> 注册/登录 → **New → Blueprint** → 连接 GitHub,选仓库 `FiredragonAI/mingli-ai`
+2. Render 读到根目录的 `render.yaml`,会列出一个 `mingli-server` 服务;点 **Apply**
+3. 它会停下来要你填标为 *sync: false* 的变量:把第一步的 key 粘进 **GEMINI_API_KEY**(`ANTHROPIC_API_KEY` 留空即可)
+4. 等构建完成(首次约 3–4 分钟),页面顶部会给出地址,形如 `https://mingli-server-xxxx.onrender.com`
+5. 打开 `https://那个地址/healthz`,看到 `"provider":"gemini"` 就通了
+6. **APP_TOKEN** 是 Render 自动生成的随机口令:在服务的 *Environment* 页复制它,下一步要用
+
+**第三步:把地址编进网页版(GitHub 仓库设置,约 2 分钟)。**
+1. 仓库 → **Settings → Secrets and variables → Actions**
+2. *Variables* 页:New repository variable,名 `MINGLI_API_URL`,值填第二步的地址(不带末尾斜杠)
+3. *Secrets* 页:New repository secret,名 `MINGLI_APP_TOKEN`,值填第二步复制的口令
+4. 随便推一次 main(或在 Actions 里手动运行 *Deploy web to GitHub Pages*),几分钟后网页版的「更多 AI 解读」按钮就亮了
+
+> 免费档空闲 15 分钟会休眠,第一次点会等几十秒;介意就在 Render 里把 plan 改成 starter。
+> Android/Windows 版要用的话,在 app 设置里填同一个地址即可(或编译时 `--dart-define=MINGLI_API_URL=…`)。
+
 ## 把地址编进 app
 
 服务器地址和口令是**编译时**注入的,不是写在代码里:

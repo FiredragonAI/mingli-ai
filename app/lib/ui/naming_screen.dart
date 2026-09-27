@@ -9,6 +9,7 @@ import '../l10n/strings.dart';
 import '../services/app_state.dart';
 import 'theme.dart';
 import 'widgets/ai_reading_card.dart';
+import 'widgets/more_ai_card.dart';
 import 'widgets/disclaimer.dart';
 
 class NamingScreen extends StatefulWidget {
@@ -150,6 +151,7 @@ class _NamingScreenState extends State<NamingScreen> {
                   load: (api) => api.interpretName(r.toJson(), chart?.toJson()),
                   localText: () => s.en ? enInterpretName(r) : localInterpretName(r),
                 ),
+                MoreAiCard(kind: 'name', body: () => {'name': r.toJson(), 'chart': chart?.toJson()}),
               ],
               const Disclaimer(),
             ],

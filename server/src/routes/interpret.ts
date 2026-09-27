@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 
 import { LruCache, cacheKey } from "../cache.js";
-import { interpret, ProviderError, RefusalError, type InterpretResult } from "../llm.js";
+import { availableProviders, interpret, ProviderError, ProviderUnavailableError, RefusalError, type InterpretResult } from "../llm.js";
 import type { Kind } from "../prompts/index.js";
 import { inputLooksMalicious } from "../safety.js";
 
@@ -12,19 +12,24 @@ const cache = new LruCache<InterpretResult>();
 const obj = z.record(z.unknown());
 // 输出语言:客户端界面语言,决定模型用哪种语言写解读
 const language = z.enum(["zh-Hans", "zh-Hant", "en"]).optional();
+// 指定模型(不传用服务端默认);「更多 AI 解读」固定传 gemini
+const provider = z.enum(["claude", "gemini"]).optional();
+// 解读模式:more = 在常规解读之外补充新角度(见 prompts 里的 MORE_SUFFIX)
+const mode = z.enum(["more"]).optional();
+const common = { language, provider, mode };
 const schemas: Record<Kind, z.ZodTypeAny> = {
-  bazi: z.object({ chart: obj, focus: z.string().max(60).optional(), language }).strict(),
-  daily: z.object({ chart: obj, fortune: obj, language }).strict(),
-  marriage: z.object({ marriage: obj, language }).strict(),
-  name: z.object({ name: obj, chart: obj.nullable().optional(), language }).strict(),
-  almanac: z.object({ almanac: obj, chart: obj.nullable().optional(), language }).strict(),
-  palm: z.object({ features: obj, chart: obj.nullable().optional(), language }).strict(),
-  face: z.object({ features: obj, chart: obj.nullable().optional(), language }).strict(),
+  bazi: z.object({ chart: obj, focus: z.string().max(60).optional(), ...common }).strict(),
+  daily: z.object({ chart: obj, fortune: obj, ...common }).strict(),
+  marriage: z.object({ marriage: obj, ...common }).strict(),
+  name: z.object({ name: obj, chart: obj.nullable().optional(), ...common }).strict(),
+  almanac: z.object({ almanac: obj, chart: obj.nullable().optional(), ...common }).strict(),
+  palm: z.object({ features: obj, chart: obj.nullable().optional(), ...common }).strict(),
+  face: z.object({ features: obj, chart: obj.nullable().optional(), ...common }).strict(),
   zodiac: z
-    .object({ zodiac: obj, match: obj.nullable().optional(), chart: obj.nullable().optional(), language })
+    .object({ zodiac: obj, match: obj.nullable().optional(), chart: obj.nullable().optional(), ...common })
     .strict(),
-  annual: z.object({ chart: obj, annual: obj, language }).strict(),
-  love: z.object({ chart: obj, love: obj, language }).strict(),
+  annual: z.object({ chart: obj, annual: obj, ...common }).strict(),
+  love: z.object({ chart: obj, love: obj, ...common }).strict(),
 };
 
 export const interpretRouter = Router();
@@ -39,7 +44,7 @@ async function handle(kind: Kind, req: Request, res: Response): Promise<void> {
     res.status(400).json({ error: "请求体格式不正确", issues: parsed.error.issues.slice(0, 5) });
     return;
   }
-  const payload = parsed.data as Record<string, unknown>;
+  const payload = parsed.data as Record<string, unknown> & { provider?: "claude" | "gemini" };
 
   if (inputLooksMalicious(payload)) {
     res.status(400).json({ error: "请求包含不允许的内容" });
@@ -52,6 +57,13 @@ async function handle(kind: Kind, req: Request, res: Response): Promise<void> {
     return;
   }
 
+  // 指定了没配置的模型:早点说清楚,别让它走到上游再 500
+  if (payload.provider && !availableProviders().includes(payload.provider)) {
+    res.status(503).json({ error: `服务端未配置 ${payload.provider} 模型`, providers: availableProviders() });
+    return;
+  }
+
+  // provider / mode 都在 payload 里,所以缓存键天然区分:同一盘面的常规解读与「更多解读」各存一份
   const key = cacheKey(kind, payload);
   const hit = cache.get(key);
   if (hit) {
@@ -60,12 +72,14 @@ async function handle(kind: Kind, req: Request, res: Response): Promise<void> {
   }
 
   try {
-    const result = await interpret(kind, payload);
+    const result = await interpret(kind, payload, { provider: payload.provider });
     cache.set(key, result);
     res.json({ ...result, cached: false });
   } catch (err) {
     if (err instanceof RefusalError) {
       res.status(422).json({ error: "本次内容无法生成解读,请调整后重试" });
+    } else if (err instanceof ProviderUnavailableError) {
+      res.status(503).json({ error: `服务端未配置 ${err.name} 模型` });
     } else if (err instanceof ProviderError) {
       // 厂商差异已在 providers/ 里归一化,这里只看 reason
       switch (err.reason) {

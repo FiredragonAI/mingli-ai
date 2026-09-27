@@ -174,25 +174,7 @@ class _AiReadingCardState extends State<AiReadingCard> {
             ),
             const SizedBox(height: 12),
             if (_result != null)
-              MarkdownBody(
-                data: _result!.text,
-                selectable: true,
-                styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
-                  p: theme.textTheme.bodyMedium?.copyWith(height: 1.7),
-                  h1: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, height: 1.3),
-                  h1Padding: const EdgeInsets.only(bottom: 4),
-                  h2: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                  h2Padding: const EdgeInsets.only(top: 10, bottom: 2),
-                  h3: theme.textTheme.titleSmall,
-                  blockquoteDecoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border(left: BorderSide(color: theme.colorScheme.primary, width: 3)),
-                  ),
-                  blockquotePadding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                  blockquote: theme.textTheme.bodyMedium?.copyWith(fontStyle: FontStyle.normal, height: 1.6),
-                ),
-              )
+              aiMarkdownBody(theme, _result!.text)
             else if (_loading)
               const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: Center(child: CircularProgressIndicator()))
             else if (_error != null)
@@ -215,3 +197,24 @@ class _AiReadingCardState extends State<AiReadingCard> {
     );
   }
 }
+
+/// 解读正文的 Markdown 渲染,AiReadingCard 与 MoreAiCard 共用,保证两张卡长得一样。
+Widget aiMarkdownBody(ThemeData theme, String text) => MarkdownBody(
+      data: text,
+      selectable: true,
+      styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
+        p: theme.textTheme.bodyMedium?.copyWith(height: 1.7),
+        h1: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, height: 1.3),
+        h1Padding: const EdgeInsets.only(bottom: 4),
+        h2: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+        h2Padding: const EdgeInsets.only(top: 10, bottom: 2),
+        h3: theme.textTheme.titleSmall,
+        blockquoteDecoration: BoxDecoration(
+          color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(8),
+          border: Border(left: BorderSide(color: theme.colorScheme.primary, width: 3)),
+        ),
+        blockquotePadding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+        blockquote: theme.textTheme.bodyMedium?.copyWith(fontStyle: FontStyle.normal, height: 1.6),
+      ),
+    );

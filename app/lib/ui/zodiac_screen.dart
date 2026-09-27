@@ -10,6 +10,7 @@ import '../l10n/strings.dart';
 import '../services/app_state.dart';
 import 'theme.dart';
 import 'widgets/ai_reading_card.dart';
+import 'widgets/more_ai_card.dart';
 import 'widgets/disclaimer.dart';
 
 /// 由命盘取星座档案(出生时刻、经纬度都在命盘里)。
@@ -153,6 +154,7 @@ class ZodiacScreen extends StatelessWidget {
                     ? enInterpretZodiac(me, match: match, chart: chart)
                     : localInterpretZodiac(me, match: match, chart: chart),
               ),
+              MoreAiCard(kind: 'zodiac', body: () => {'zodiac': me.toJson(), 'match': match?.toJson(), 'chart': chart.toJson()}),
               const Disclaimer(),
             ],
           ),

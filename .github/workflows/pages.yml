@@ -43,7 +43,13 @@ jobs:
       - run: flutter pub get
 
       - name: Build web
-        run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+        # MINGLI_API_URL 是仓库变量(Settings → Secrets and variables → Actions → Variables),
+        # MINGLI_APP_TOKEN 是仓库密钥;都没设时网页版走纯本机解读,和现在一样
+        run: >-
+          flutter build web --release
+          --base-href "/${{ github.event.repository.name }}/"
+          --dart-define=MINGLI_API_URL=${{ vars.MINGLI_API_URL }}
+          --dart-define=MINGLI_APP_TOKEN=${{ secrets.MINGLI_APP_TOKEN }}
 
       - name: Bundle privacy policy alongside the app
         run: cp ../docs/privacy-policy.html build/web/

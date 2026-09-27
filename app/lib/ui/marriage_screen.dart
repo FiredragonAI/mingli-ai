@@ -10,6 +10,7 @@ import '../l10n/strings.dart';
 import '../services/app_state.dart';
 import 'birth_input_screen.dart';
 import 'widgets/ai_reading_card.dart';
+import 'widgets/more_ai_card.dart';
 import 'widgets/disclaimer.dart';
 import 'zodiac_screen.dart' show zodiacOfChart;
 
@@ -127,6 +128,7 @@ class MarriagePairBody extends StatelessWidget {
                 load: (api) => api.interpretMarriage(result.toJson()),
                 localText: () => s.en ? enInterpretMarriage(result) : localInterpretMarriage(result),
               ),
+              MoreAiCard(kind: 'marriage', body: () => {'marriage': result.toJson()}),
             ],
             const Disclaimer(),
           ],

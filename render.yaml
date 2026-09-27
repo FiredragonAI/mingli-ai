@@ -1,5 +1,5 @@
 # Render 蓝图:在 render.com 选 New → Blueprint → 选本仓库,即按此文件建服务。
-# 详细步骤见 docs/DEPLOY.md。
+# 详细步骤见 docs/DEPLOY.md(「Gemini 三步上线」一节)。
 services:
   - type: web
     name: mingli-server
@@ -11,18 +11,30 @@ services:
     region: singapore
     healthCheckPath: /healthz
     envVars:
-      # 在 Render 面板里手填,不会写进仓库
+      # ---- 模型:默认 Gemini。两个 key 都是在 Render 面板里手填,不会写进仓库 ----
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.8-flash
+      # 想同时开 Claude 就填这个;留空则 /v1/interpret 里指定 provider=claude 会返回 503
       - key: ANTHROPIC_API_KEY
         sync: false
-      # Render 自动生成一个随机口令;编 app 时用 --dart-define=MINGLI_APP_TOKEN=<这个值>
-      - key: APP_TOKEN
-        generateValue: true
       - key: CLAUDE_MODEL
         value: claude-opus-5
       - key: CLAUDE_EFFORT
         value: high
-      - key: CLAUDE_MAX_TOKENS
+      - key: LLM_MAX_TOKENS
         value: "6000"
+      # ---- 访问控制 ----
+      # Render 自动生成一个随机口令;网页版由 GitHub Actions 用仓库密钥 MINGLI_APP_TOKEN 带进去,
+      # 原生版编译时用 --dart-define=MINGLI_APP_TOKEN=<这个值>
+      - key: APP_TOKEN
+        generateValue: true
+      # 只放行网页版的来源;本地调试或加其他前端时用逗号追加
+      - key: CORS_ORIGINS
+        value: https://firedragonai.github.io
       - key: RATE_LIMIT_PER_10MIN
         value: "30"
       - key: CACHE_TTL_DAYS

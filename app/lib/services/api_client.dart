@@ -108,6 +108,11 @@ class ApiClient {
   Future<Interpretation> interpretBazi(Map<String, dynamic> chart, {String focus = 'overview'}) =>
       _post('/v1/interpret/bazi', {'chart': chart, 'focus': focus});
 
+  /// 「更多 AI 解读」:同一份数据,指定后端用 Gemini、按"补充视角"模式生成。
+  /// [kind] 与 [body] 和对应的 interpretX 完全一致;这里不做本地兜底,由卡片自己处理不可用状态。
+  Future<Interpretation> more(String kind, Map<String, dynamic> body) =>
+      _post('/v1/interpret/$kind', {...body, 'provider': 'gemini', 'mode': 'more'});
+
   /// 每日运势文案。
   Future<Interpretation> interpretDaily(Map<String, dynamic> chart, Map<String, dynamic> fortune) =>
       _post('/v1/interpret/daily', {'chart': chart, 'fortune': fortune});
