@@ -48,7 +48,7 @@ class SbtiType {
   const SbtiType({
     required this.code,
     required this.emoji,
-    required this.lottieCode,
+    required this.avatar,
     required this.zhName,
     required this.enName,
     required this.zhTagline,
@@ -63,10 +63,10 @@ class SbtiType {
 
   final String code;
 
-  /// 结果页的动画表情:glyph 是兜底显示的字符,lottieCode 对应 assets/emoji/<code>.json
-  /// (Noto Animated Emoji,CC BY 4.0)。动画文件缺失时退回显示 glyph。
+  /// 结果页的 Q 版形象:assets/sbti/<avatar>.svg,由 tools/gen_sbti_avatars.dart 生成,原创。
+  /// emoji 是万一图片加载失败时的兜底字符。
   final String emoji;
-  final String lottieCode;
+  final String avatar;
 
   final String zhName;
   final String enName;
@@ -242,7 +242,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'MELON',
     emoji: '🍉',
-    lottieCode: '1f349',
+    avatar: 'melon',
     zhName: '吃瓜群众',
     enName: 'Melon Muncher',
     zhTagline: '你不站队,你只搬凳子。',
@@ -257,7 +257,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'LOL-R',
     emoji: '🍿',
-    lottieCode: '1f37f',
+    avatar: 'lol_r',
     zhName: '乐子人',
     enName: 'Here For The Chaos',
     zhTagline: '天塌下来,你先笑一声。',
@@ -272,7 +272,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'LOOP',
     emoji: '🧠',
-    lottieCode: '1f9e0',
+    avatar: 'loop',
     zhName: '内耗人',
     enName: 'The Overthinker',
     zhTagline: '别人一句话,你脑内三集连续剧。',
@@ -287,7 +287,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'LITE',
     emoji: '😐',
-    lottieCode: '1f610',
+    avatar: 'lite',
     zhName: '淡人',
     enName: 'The Lite Version',
     zhTagline: '你的情绪是低糖版的。',
@@ -302,7 +302,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'MAX',
     emoji: '🤩',
-    lottieCode: '1f929',
+    avatar: 'max',
     zhName: '浓人',
     enName: 'Extra Strength',
     zhTagline: '你不是来参加聚会的,你是聚会本身。',
@@ -317,7 +317,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'SHOW-Y',
     emoji: '🦩',
-    lottieCode: '1f9a9',
+    avatar: 'show_y',
     zhName: '显眼包',
     enName: 'The Show-Off',
     zhTagline: '低调这个词,在你的字典里被删除了。',
@@ -332,7 +332,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'JUAN',
     emoji: '🔥',
-    lottieCode: '1f525',
+    avatar: 'juan',
     zhName: '卷王',
     enName: 'The Grinder',
     zhTagline: '你的休息,是换一种方式工作。',
@@ -347,7 +347,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'LAN',
     emoji: '🥱',
-    lottieCode: '1f971',
+    avatar: 'lan',
     zhName: '摆烂人',
     enName: 'The Rot',
     zhTagline: '既然做不好,那就不做了。',
@@ -362,7 +362,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'NOPE!',
     emoji: '😤',
-    lottieCode: '1f624',
+    avatar: 'nope',
     zhName: '杠精',
     enName: 'Professional Objector',
     zhTagline: '你不是在反驳,你是在呼吸。',
@@ -377,7 +377,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'OK-R',
     emoji: '🙃',
-    lottieCode: '1f643',
+    avatar: 'ok_r',
     zhName: '老好人',
     enName: 'The Yes-Person',
     zhTagline: '你说"都行",其实哪个都不行。',
@@ -392,7 +392,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'DDL',
     emoji: '⏰',
-    lottieCode: '23f0',
+    avatar: 'ddl',
     zhName: '死线战神',
     enName: 'Deadline Warrior',
     zhTagline: '截止日期不是压力,是燃料。',
@@ -407,7 +407,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'ZZZ',
     emoji: '😴',
-    lottieCode: '1f634',
+    avatar: 'zzz',
     zhName: '装睡人',
     enName: 'Cannot Be Woken',
     zhTagline: '你不是叫不醒,你是不想醒。',
@@ -422,7 +422,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'SIMP',
     emoji: '😍',
-    lottieCode: '1f60d',
+    avatar: 'simp',
     zhName: '恋爱脑',
     enName: 'The Simp',
     zhTagline: '对方说"在吗",你已经在选婚纱。',
@@ -437,7 +437,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'CEO',
     emoji: '🧐',
-    lottieCode: '1f9d0',
+    avatar: 'ceo',
     zhName: '精神股东',
     enName: 'Armchair CEO',
     zhTagline: '公司不听你的,是公司的损失。',
@@ -452,7 +452,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'ZERO',
     emoji: '💸',
-    lottieCode: '1f4b8',
+    avatar: 'zero',
     zhName: '月光侠',
     enName: 'Paycheck Zero',
     zhTagline: '钱只是数字,而你的数字是零。',
@@ -467,7 +467,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'XUAN',
     emoji: '🔮',
-    lottieCode: '1f52e',
+    avatar: 'xuan',
     zhName: '玄学人',
     enName: "Mercury's Victim",
     zhTagline: '你不是倒霉,你是水逆的忠实用户。',
@@ -482,7 +482,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'MUYU',
     emoji: '🙏',
-    lottieCode: '1f64f',
+    avatar: 'muyu',
     zhName: '电子佛',
     enName: 'Cyber Buddha',
     zhTagline: '一切随缘,但功德最好现在就到账。',
@@ -497,7 +497,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'ECHO',
     emoji: '🗣',
-    lottieCode: '1f5e3',
+    avatar: 'echo',
     zhName: '复读机',
     enName: 'The Echo',
     zhTagline: '你没有观点,但你有 +1。',
@@ -512,7 +512,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'GHOST',
     emoji: '👻',
-    lottieCode: '1f47b',
+    avatar: 'ghost',
     zhName: '已读不回人',
     enName: 'Left On Read',
     zhTagline: '你看到了,你只是选择了沉默。',
@@ -527,7 +527,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'GOD',
     emoji: '😎',
-    lottieCode: '1f60e',
+    avatar: 'god',
     zhName: '自信过头',
     enName: 'God Mode',
     zhTagline: '世界上只有两种人:你,和还没认识你的人。',
@@ -542,7 +542,7 @@ const List<SbtiType> sbtiTypes = [
   SbtiType(
     code: 'IRON',
     emoji: '🤑',
-    lottieCode: '1f911',
+    avatar: 'iron',
     zhName: '铁公鸡',
     enName: 'The Tightwad',
     zhTagline: '你不是抠,你是有原则地不花钱。',

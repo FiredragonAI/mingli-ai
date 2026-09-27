@@ -1,7 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lottie/lottie.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -14,7 +16,7 @@ import 'widgets/disclaimer.dart';
 /// SBTI 性格测试:介绍 → 15 题逐题作答 → 结果页(可分享)。
 ///
 /// 全程本机、确定性,不调任何 AI;它是给人截图转发用的社交货币,
-/// 所以结果页刻意做成"一屏装下、一眼看懂":大动画 + 类型码 + 名字 + 一句话 + 匹配度。
+/// 所以结果页刻意做成"一屏装下、一眼看懂":Q 版形象 + 类型码 + 名字 + 一句话 + 匹配度。
 class SbtiScreen extends StatefulWidget {
   const SbtiScreen({super.key});
 
@@ -81,28 +83,59 @@ class _SbtiScreenState extends State<SbtiScreen> {
   }
 }
 
-// ---------------------------------------------------------------- 动画表情
+// ---------------------------------------------------------------- Q 版形象
 
-/// 类型的动画表情。动画文件没打进包(或加载失败)时退回显示表情字符,
-/// 页面永远不会因为缺一个 JSON 而空一块。
-class _TypeEmoji extends StatelessWidget {
-  const _TypeEmoji(this.type, {this.size = 160});
+/// 类型的 Q 版形象(assets/sbti/<avatar>.svg,tools/gen_sbti_avatars.dart 生成),
+/// 带一个轻微的上下浮动,让静态图有"活着"的感觉。图片加载失败时退回表情字符。
+class _TypeAvatar extends StatefulWidget {
+  const _TypeAvatar(this.type, {this.size = 168});
   final SbtiType type;
   final double size;
 
   @override
+  State<_TypeAvatar> createState() => _TypeAvatarState();
+}
+
+class _TypeAvatarState extends State<_TypeAvatar> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 2600));
+
+  @override
+  void initState() {
+    super.initState();
+    _c.repeat();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    Widget glyph(BuildContext _, [Object? __, StackTrace? ___]) => SizedBox(
-          width: size,
-          height: size,
-          child: Center(child: Text(type.emoji, style: TextStyle(fontSize: size * 0.62, height: 1))),
-        );
-    return Lottie.asset(
-      'assets/emoji/${type.lottieCode}.json',
+    final size = widget.size;
+    final image = SvgPicture.asset(
+      'assets/sbti/${widget.type.avatar}.svg',
       width: size,
       height: size,
-      repeat: true,
-      errorBuilder: glyph,
+      placeholderBuilder: (_) => SizedBox(width: size, height: size),
+      errorBuilder: (_, __, ___) => SizedBox(
+        width: size,
+        height: size,
+        child: Center(child: Text(widget.type.emoji, style: TextStyle(fontSize: size * 0.6, height: 1))),
+      ),
+    );
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, child) {
+        final t = _c.value * 2 * math.pi;
+        // 上下 5px 浮动 + 1.5° 轻摆,慢一点更像在呼吸而不是在抖
+        return Transform.translate(
+          offset: Offset(0, -5 * math.sin(t)),
+          child: Transform.rotate(angle: 0.026 * math.sin(t + math.pi / 3), child: child),
+        );
+      },
+      child: image,
     );
   }
 }
@@ -117,7 +150,7 @@ class _Intro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // 介绍页放三个会动的表情当"预告",让人知道测完会拿到什么
+    // 介绍页放三个形象当"预告",让人知道测完会拿到什么
     const teasers = ['SHOW-Y', 'LOOP', 'ZZZ'];
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -132,8 +165,8 @@ class _Intro extends StatelessWidget {
                   children: [
                     for (final code in teasers)
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: _TypeEmoji(sbtiTypes.firstWhere((t) => t.code == code), size: 72),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: _TypeAvatar(sbtiTypes.firstWhere((t) => t.code == code), size: 84),
                       ),
                   ],
                 ),
@@ -238,7 +271,7 @@ class _Result extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // ---- 头图:动画 + 类型码 + 名字 + 一句话 + 匹配度。这块就是给截图的
+        // ---- 头图:形象 + 类型码 + 名字 + 一句话 + 匹配度。这块就是给截图的
         Card(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
@@ -246,7 +279,7 @@ class _Result extends StatelessWidget {
               children: [
                 Text(s.sbtiYourType, style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.outline)),
                 const SizedBox(height: 4),
-                _TypeEmoji(t),
+                _TypeAvatar(t),
                 const SizedBox(height: 4),
                 Text(t.code, style: theme.textTheme.displayMedium?.copyWith(fontWeight: FontWeight.w800, color: AppColors.jade, letterSpacing: 2, height: 1.05)),
                 Text(en ? t.enName : s.text(t.zhName), style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
@@ -330,8 +363,6 @@ class _Result extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(s.sbtiFooter, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline), textAlign: TextAlign.center),
-        // CC BY 4.0 要求署名
-        Text(s.sbtiCredit, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline), textAlign: TextAlign.center),
         const Disclaimer(),
       ],
     );

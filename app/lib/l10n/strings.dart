@@ -368,7 +368,7 @@ class S {
   String get aiZodiac => _('AI 星座解读', 'AI zodiac reading');
 
   // ------------------------------------------------------------ SBTI 玩梗测试
-  String get sbtiEntry => _('玩梗', 'SBTI');
+  String get sbtiEntry => _('性格', 'SBTI');
   String get sbtiTitle => _('SBTI 性格测试', 'SBTI Personality Test');
   String get sbtiSubtitle => _('不科学,但准得离谱', 'Unscientific. Weirdly accurate.');
   String get sbtiIntro => _(
@@ -382,7 +382,6 @@ class S {
   String sbtiRarity(int pct) => _('稀有度 $pct%', 'Rarity $pct%');
   String sbtiMatch(int pct) => _('匹配度 $pct%', 'Match $pct%');
   String sbtiExact(int n, int total) => _('精准命中 $n/$total 维', 'Exact hits $n/$total dims');
-  String get sbtiCredit => _('动画表情:Noto Animated Emoji(Google,CC BY 4.0)', 'Animated emoji: Noto Animated Emoji (Google, CC BY 4.0)');
   String get sbtiHighs => _('拉满的', 'Maxed out');
   String get sbtiLows => _('见底的', 'Running on empty');
   String get sbtiEasterEgg => _('命理彩蛋', 'Bazi easter egg');

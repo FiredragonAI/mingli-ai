@@ -49,5 +49,5 @@
 
 ## 第三方素材署名
 
-- **Noto Animated Emoji**(Google)—— SBTI 性格测试结果页的动画表情。许可 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),要求署名;app 内结果页底部与本文件均已署名。来源:<https://googlefonts.github.io/noto-emoji-animation/>。
+- SBTI 性格测试的 21 个 Q 版形象为本项目原创(`app/tools/gen_sbti_avatars.dart` 程序化生成的 SVG),无第三方授权。
 - **思源宋体 / Source Han Serif**(Adobe)—— 界面字体子集。许可 SIL OFL 1.1。

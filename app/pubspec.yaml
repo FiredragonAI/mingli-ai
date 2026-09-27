@@ -35,7 +35,7 @@ dependencies:
 
   # 展示
   fl_chart: ^0.69.0                  # 五行雷达图 / 运势曲线
-  lottie: ^3.6.1                     # SBTI 结果页的动画表情(Noto Animated Emoji,CC BY 4.0)
+  flutter_svg: ^2.0.10               # SBTI 结果页的 Q 版形象(自绘 SVG)
   flutter_markdown: ^0.7.4           # 渲染 AI 解读
 
 dev_dependencies:
@@ -48,7 +48,7 @@ flutter:
   assets:
     - assets/models/
     - assets/data/
-    - assets/emoji/
+    - assets/sbti/
   # 思源宋体子集(SIL OFL):由 tools/fontsubset/subset.mjs 从官方全字库裁出,
   # 覆盖 lib/ 里出现的全部汉字 + 简繁表 + GB2312 全部 6763 字。
   # 打包的原因见 lib/platform/native_web.dart 注释:Web 端没有系统字体可回退。

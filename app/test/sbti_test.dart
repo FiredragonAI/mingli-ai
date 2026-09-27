@@ -3,6 +3,8 @@
 // 内容是原创文案,改起来很随意——这里守住的是"改文案不会悄悄把玩法改坏":
 // 题数/维度/选项分值、模板互不重复且都能被命中、三语没有漏翻、稀有度加起来是 100。
 
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mingli_ai/core/bazi/five_elements.dart';
 import 'package:mingli_ai/core/sbti/sbti.dart';
@@ -91,4 +93,15 @@ void main() {
     expect(sbtiShareText(r, en: false), contains(r.type.code));
     expect(sbtiShareText(r, en: true), contains(r.type.code));
   });
+  test('每个类型的 Q 版形象 SVG 都在(由 tools/gen_sbti_avatars.dart 生成)', () {
+    final slugs = <String>{};
+    for (final t in sbtiTypes) {
+      expect(RegExp(r'^[a-z0-9_]+$').hasMatch(t.avatar), isTrue, reason: '${t.code} 的 avatar 不是合法文件名');
+      expect(slugs.add(t.avatar), isTrue, reason: '${t.code} 的 avatar 与别的类型重复');
+      final f = File('assets/sbti/${t.avatar}.svg');
+      expect(f.existsSync(), isTrue, reason: '缺 ${f.path},请运行 dart run tools/gen_sbti_avatars.dart');
+      expect(f.readAsStringSync(), contains('<svg'), reason: '${f.path} 不是 SVG');
+    }
+  });
+
 }
