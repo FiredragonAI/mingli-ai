@@ -367,6 +367,29 @@ class S {
   String get pairingHint => _('在"合婚"里填写对方出生信息后,这里会显示两人的星座配对。', "Add your partner's birth details under Compatibility to see your zodiac pairing here.");
   String get aiZodiac => _('AI 星座解读', 'AI zodiac reading');
 
+  // ------------------------------------------------------------ SBTI 玩梗测试
+  String get sbtiEntry => _('玩梗', 'SBTI');
+  String get sbtiTitle => _('SBTI 测试', 'SBTI Test');
+  String get sbtiSubtitle => _('玩梗版人格测试', 'The meme personality test');
+  String get sbtiIntro => _(
+        '30 道三选一,大约 3 分钟。没有对错,没有科学依据,只有 21 种精准的自嘲。测完可以直接截图发给朋友。',
+        '30 quick questions, about 3 minutes. No right answers, no science — just 21 precisely aimed roasts. Screenshot the result and send it to a friend.',
+      );
+  String get sbtiStart => _('开始测试', 'Start');
+  String sbtiQuestionNo(int i, int n) => _('第 $i / $n 题', 'Question $i of $n');
+  String get sbtiPrev => _('上一题', 'Back');
+  String get sbtiYourType => _('你的 SBTI 类型', 'Your SBTI type');
+  String sbtiRarity(int pct) => _('稀有度 $pct%', 'Rarity $pct%');
+  String sbtiMatch(int pct) => _('匹配度 $pct%', 'Match $pct%');
+  String get sbtiHighs => _('拉满的', 'Maxed out');
+  String get sbtiLows => _('见底的', 'Running on empty');
+  String get sbtiEasterEgg => _('命理彩蛋', 'Bazi easter egg');
+  String get sbtiTip => _('一句劝', 'One tip');
+  String get sbtiShare => _('分享', 'Share');
+  String get sbtiRetake => _('再测一次', 'Retake');
+  String get sbtiCopied => _('结果已复制,去粘贴给朋友', 'Copied — paste it to a friend');
+  String get sbtiFooter => _('纯属玩梗,不构成任何人格评价或心理测评。', 'Pure meme. Not a personality or psychological assessment.');
+
   // ------------------------------------------------------------ 内部
   static String _p(int v) => v.toString().padLeft(2, '0');
   static String _shichenRange(int b) {

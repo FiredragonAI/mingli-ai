@@ -50,6 +50,22 @@ docker build -t mingli-server . && docker run -d --restart=always -p 8787:8787 -
 可能慢或不稳定;而国内云主机对外提供服务需要 ICP 备案,且服务器访问 Anthropic API 需要合规的出境线路。
 先用方案 A 把功能跑通,再按目标市场决定机房。
 
+## 选模型:Claude 还是 Gemini
+
+服务端同时支持两家,用环境变量切,客户端完全不用改:
+
+| 变量 | 说明 |
+|---|---|
+| `LLM_PROVIDER` | `claude` 或 `gemini`。留空时:只给了 `GEMINI_API_KEY` 就用 Gemini,否则用 Claude |
+| `GEMINI_API_KEY` | 在 <https://aistudio.google.com/apikey> 创建 |
+| `GEMINI_MODEL` | 默认 `gemini-3.8-flash`(当前稳定的通用 Flash 模型);模型名以 <https://ai.google.dev/gemini-api/docs/models> 为准 |
+| `ANTHROPIC_API_KEY` / `CLAUDE_MODEL` / `CLAUDE_EFFORT` | Claude 路径,和以前一样 |
+
+两家共用同一套提示词、安全检查、越界改写、缓存和限流——换模型不会少任何一道护栏。
+启动日志和 `/healthz` 会打出当前用的是哪家、哪个模型;凭据不对会在启动时就警告,不用等第一个用户撞上。
+
+> Gemini 走 REST(`generateContent`),不引 SDK;推理力度(`CLAUDE_EFFORT`)只对 Claude 生效。
+
 ## 把地址编进 app
 
 服务器地址和口令是**编译时**注入的,不是写在代码里:

@@ -17,6 +17,7 @@ import 'annual_screen.dart';
 import 'love_screen.dart';
 import 'naming_screen.dart';
 import 'settings_screen.dart';
+import 'sbti_screen.dart';
 import 'theme.dart';
 import 'vision_screen.dart';
 import 'widgets/ai_reading_card.dart';
@@ -389,6 +390,7 @@ class _QuickActions extends StatelessWidget {
       (Icons.star_border, s.zodiac, const ZodiacScreen()),
       (Icons.favorite_outline, s.love, const LoveScreen()),
       (Icons.text_fields, s.naming, const NamingScreen()),
+      (Icons.mood_outlined, s.sbtiEntry, const SbtiScreen()),
       // Web 上没有端侧模型(tflite 依赖 dart:ffi),手相/面相整个不露出
       if (supportsOnDeviceVision) ...[
         (Icons.back_hand_outlined, s.palmAi, const VisionScreen(mode: VisionMode.palm)),

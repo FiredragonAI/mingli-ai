@@ -5,8 +5,8 @@ import helmet from "helmet";
 import pino from "pino";
 import { pinoHttp } from "pino-http";
 
-import { probe } from "./claude.js";
 import { config } from "./config.js";
+import { probe, provider } from "./llm.js";
 import { cacheStats, interpretRouter } from "./routes/interpret.js";
 
 const log = pino({ level: config.logLevel, name: "server" });
@@ -39,7 +39,7 @@ app.use(
 );
 
 app.get("/healthz", (_req, res) => {
-  res.json({ ok: true, model: config.model, cache: cacheStats() });
+  res.json({ ok: true, provider: provider.name, model: provider.model, cache: cacheStats() });
 });
 
 app.use("/v1/interpret", (req, res, next) => {
@@ -66,7 +66,13 @@ app.use(
 app.use((_req, res) => res.status(404).json({ error: "not found" }));
 
 app.listen(config.port, async () => {
-  log.info({ port: config.port, model: config.model, effort: config.effort }, "mingli-server listening");
+  log.info({ port: config.port, provider: provider.name, model: provider.model, effort: config.effort }, "mingli-server listening");
   const ok = await probe();
-  if (!ok) log.warn("无法访问模型:检查 ANTHROPIC_API_KEY 或运行 `ant auth login`");
+  if (!ok) {
+    log.warn(
+      provider.name === "gemini"
+        ? "无法访问模型:检查 GEMINI_API_KEY 与 GEMINI_MODEL(模型名以 ai.google.dev/gemini-api/docs/models 为准)"
+        : "无法访问模型:检查 ANTHROPIC_API_KEY 或运行 `ant auth login`",
+    );
+  }
 });

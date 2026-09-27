@@ -1,9 +1,8 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 
 import { LruCache, cacheKey } from "../cache.js";
-import { interpret, RefusalError, type InterpretResult } from "../claude.js";
+import { interpret, ProviderError, RefusalError, type InterpretResult } from "../llm.js";
 import type { Kind } from "../prompts/index.js";
 import { inputLooksMalicious } from "../safety.js";
 
@@ -67,20 +66,32 @@ async function handle(kind: Kind, req: Request, res: Response): Promise<void> {
   } catch (err) {
     if (err instanceof RefusalError) {
       res.status(422).json({ error: "本次内容无法生成解读,请调整后重试" });
-    } else if (err instanceof Anthropic.RateLimitError) {
-      res.status(503).json({ error: "解读服务繁忙,请稍后再试" });
-    } else if (err instanceof Anthropic.AuthenticationError) {
-      req.log.error("Anthropic credentials invalid");
-      res.status(500).json({ error: "服务配置错误" });
-    } else if (err instanceof Anthropic.BadRequestError) {
-      req.log.error({ err }, "bad request to Anthropic");
-      res.status(500).json({ error: "解读请求构造失败" });
-    } else if (err instanceof Anthropic.APIError) {
-      req.log.error({ status: err.status, err }, "Anthropic API error");
-      res.status(502).json({ error: "解读服务暂时不可用" });
-    } else if (err instanceof Anthropic.APIConnectionError) {
-      req.log.error({ err }, "Anthropic connection error");
-      res.status(502).json({ error: "无法连接解读服务" });
+    } else if (err instanceof ProviderError) {
+      // 厂商差异已在 providers/ 里归一化,这里只看 reason
+      switch (err.reason) {
+        case "rate":
+          res.status(503).json({ error: "解读服务繁忙,请稍后再试" });
+          break;
+        case "auth":
+          req.log.error({ status: err.status }, "model credentials invalid");
+          res.status(500).json({ error: "服务配置错误" });
+          break;
+        case "bad_request":
+          req.log.error({ status: err.status, err: err.message }, "bad request to model API");
+          res.status(500).json({ error: "解读请求构造失败" });
+          break;
+        case "timeout":
+          req.log.error("model API timeout");
+          res.status(504).json({ error: "解读超时,请稍后再试" });
+          break;
+        case "network":
+          req.log.error({ err: err.message }, "model API connection error");
+          res.status(502).json({ error: "无法连接解读服务" });
+          break;
+        default:
+          req.log.error({ status: err.status, err: err.message }, "model API error");
+          res.status(502).json({ error: "解读服务暂时不可用" });
+      }
     } else {
       req.log.error({ err }, "unexpected error");
       res.status(500).json({ error: "服务器内部错误" });
