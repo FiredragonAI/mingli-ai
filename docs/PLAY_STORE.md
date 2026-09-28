@@ -131,8 +131,8 @@ Play Console → 政策 → **应用内容 → 内容分级**。类别选 **"参
 ## 5. 商店详情文案
 
 ### 应用名称(50 字符内)
-- 中文:`命理师 AI - 八字命盘与每日运势`
-- English:`Mingli AI — BaZi Chart & Daily Fortune`
+- 中文:`知命 - 八字命盘与每日运势`
+- English:`FateCode — BaZi Chart & Daily Fortune`
 
 ### 简短说明(80 字符内)
 - 中文:`专业八字排盘,天文级精度。每日运势、流年、合婚、姓名、黄历,离线可用。`
@@ -141,7 +141,7 @@ Play Console → 政策 → **应用内容 → 内容分级**。类别选 **"参
 ### 完整说明(4000 字符内,中文版)
 
 ```
-命理师 AI 是一款把传统命理算得准、讲得明白的工具。
+知命 是一款把传统命理算得准、讲得明白的工具。
 
 【排盘精度】
 · 二十四节气用 VSOP87 天文算法实时推算,精确到分钟,与《中国天文年历》一致
@@ -176,7 +176,7 @@ Play Console → 政策 → **应用内容 → 内容分级**。类别选 **"参
 ### 完整说明(English)
 
 ```
-Mingli AI computes Chinese BaZi (Four Pillars) astrology with real astronomical precision — and explains it in plain language.
+FateCode computes Chinese BaZi (Four Pillars) astrology with real astronomical precision — and explains it in plain language.
 
 ACCURACY
 · The 24 solar terms are computed live with the VSOP87 planetary theory, accurate to the minute
@@ -240,7 +240,7 @@ emulator -avd pixel
 ## 7. 上传步骤
 
 1. 登录 <https://play.google.com/console> → **创建应用**
-   - 应用名称:`命理师 AI`
+   - 应用名称:`知命`
    - 默认语言:简体中文(之后可添加英文、繁体中文本地化)
    - 应用或游戏:**应用**;免费或付费:**免费**
 2. 左侧 **政策 → 应用内容**,依次完成:隐私政策 URL、广告(选"否")、应用访问权限(选"所有功能均可使用,无需特殊访问权限")、内容分级、目标受众、数据安全(照第 3、4 节填)

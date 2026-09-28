@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>命理师 AI</string>
+	<string>知命</string>
 	<key>NSCameraUsageDescription</key>
 	<string>用于拍摄手掌或面部。照片仅在本机分析,不会保存或上传。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -21,7 +21,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>mingli_ai</string>
+	<string>FateCode</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

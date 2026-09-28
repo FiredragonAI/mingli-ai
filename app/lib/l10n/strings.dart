@@ -50,7 +50,7 @@ class S {
   String pillar(int i) => en ? pillarEnglish[i] : _(pillarNamesZh[i], pillarNamesZh[i]);
 
   // ------------------------------------------------------------ 通用
-  String get appTitle => _('命理师 AI', 'Mingli AI');
+  String get appTitle => _('知命', 'FateCode');
   String get ok => _('确定', 'OK');
   String get cancel => _('取消', 'Cancel');
   String get agree => _('同意', 'Agree');
@@ -106,7 +106,7 @@ class S {
   String get saveImage => _('保存图片', 'Save image');
   String get shareImage => _('分享', 'Share');
   String get savedTo => _('已保存', 'Saved');
-  String get shareCardFooter => _('命理师 AI · 排盘在本机完成 · 仅供娱乐参考', 'Mingli AI · computed on device · for entertainment');
+  String get shareCardFooter => _('知命 · 排盘在本机完成 · 仅供娱乐参考', 'FateCode · computed on device · for entertainment');
   String get favorableShort => _('喜用', 'Favorable');
   String get dayMasterShort => _('日主', 'Day Master');
 

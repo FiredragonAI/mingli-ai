@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'core/naming/stroke_dictionary.dart';
 import 'l10n/s2t.dart';
+import 'l10n/strings.dart';
 import 'platform/selftest.dart';
 import 'services/app_state.dart';
 import 'services/storage/profile_store.dart';
@@ -45,7 +46,7 @@ class MingliApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final lang = context.watch<AppState>().language;
     return MaterialApp(
-      title: 'Mingli AI',
+      onGenerateTitle: (context) => S.of(context).appTitle,
       debugShowCheckedModeBanner: false,
       theme: buildTheme(Brightness.light),
       darkTheme: buildTheme(Brightness.dark),

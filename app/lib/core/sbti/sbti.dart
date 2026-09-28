@@ -621,6 +621,6 @@ String sbtiDayMasterLine(Element dayMaster, {required bool en}) => switch (dayMa
 String sbtiShareText(SbtiResult r, {required bool en}) {
   final t = r.type;
   return en
-      ? 'My SBTI type: ${t.code} · ${t.enName} (rarity ${t.rarityPct}%)\n"${t.enTagline}"\n— Mingli AI, SBTI Personality Test'
-      : '我是 SBTI 里的「${t.zhName}」${t.code}(稀有度 ${t.rarityPct}%)\n「${t.zhTagline}」\n—— 命理师 AI · SBTI 性格测试';
+      ? 'My SBTI type: ${t.code} · ${t.enName} (rarity ${t.rarityPct}%)\n"${t.enTagline}"\n— FateCode, SBTI Personality Test'
+      : '我是 SBTI 里的「${t.zhName}」${t.code}(稀有度 ${t.rarityPct}%)\n「${t.zhTagline}」\n—— 知命 · SBTI 性格测试';
 }

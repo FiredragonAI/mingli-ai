@@ -1,10 +1,10 @@
 {
-    "name": "命理师 AI",
-    "short_name": "命理师 AI",
+    "name": "知命 · FateCode",
+    "short_name": "知命",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#F5F1EA",
-    "theme_color": "#B8402E",
+    "theme_color": "#0B1437",
     "description": "八字 · 五行 · 运势 · 合婚 · 姓名 · 黄历。所有推算均在本机完成,信息不会上传。",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
