@@ -389,6 +389,8 @@ class S {
   String get sbtiShare => _('分享', 'Share');
   String get sbtiRetake => _('再测一次', 'Retake');
   String get sbtiCopied => _('结果已复制,去粘贴给朋友', 'Copied — paste it to a friend');
+  String get sbtiPosterFooter => _('知命 · SBTI 性格测试 · 纯属玩梗,仅供娱乐', 'FateCode · SBTI Personality Test · just for fun');
+  String get sbtiShareTextOnly => _('只分享文字', 'Text only');
   String get sbtiFooter => _('纯属玩梗,不构成任何人格评价或心理测评。', 'Pure meme. Not a personality or psychological assessment.');
 
   // ------------------------------------------------------------ 更多 AI 解读(Gemini)

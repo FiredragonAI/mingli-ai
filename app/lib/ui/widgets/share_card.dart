@@ -5,6 +5,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' hide Element;
 import 'package:flutter/rendering.dart';
+import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../core/bazi/bazi_chart.dart';
@@ -14,6 +15,7 @@ import '../../core/interpret/plain_language.dart';
 import '../../core/zodiac/western_zodiac.dart';
 import '../../l10n/glossary.dart';
 import '../../l10n/strings.dart';
+import '../../services/app_state.dart';
 import '../../platform/native.dart';
 import '../theme.dart';
 
@@ -130,7 +132,8 @@ class PersonaCard extends StatelessWidget {
 /// 弹出预览 + 保存/分享。
 Future<void> showShareCard(BuildContext context, BaziChart chart, ZodiacProfile zodiac) async {
   final key = GlobalKey();
-  final s = S.of(context);
+  // 这是回调不是 build:不能 watch,读一次当前语言即可
+  final s = S(context.read<AppState>().language);
   final messenger = ScaffoldMessenger.of(context);
   // 桌面端另存为、Web 端浏览器下载,都是"存到本机";手机端才走系统分享面板
   final saveLocally = isDesktop || kIsWeb;

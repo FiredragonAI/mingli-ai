@@ -1,17 +1,15 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../core/sbti/sbti.dart';
 import '../l10n/strings.dart';
 import '../services/app_state.dart';
 import 'theme.dart';
 import 'widgets/disclaimer.dart';
+import 'widgets/sbti_share_card.dart';
 
 /// SBTI 性格测试:介绍 → 15 题逐题作答 → 结果页(可分享)。
 ///
@@ -53,16 +51,7 @@ class _SbtiScreenState extends State<SbtiScreen> {
         }
       });
 
-  Future<void> _share(S s) async {
-    final text = sbtiShareText(_result!, en: s.en);
-    if (kIsWeb) {
-      // 桌面浏览器多半没有系统分享面板;复制到剪贴板最不会让人卡住
-      await Clipboard.setData(ClipboardData(text: text));
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.sbtiCopied)));
-      return;
-    }
-    await Share.share(text);
-  }
+  Future<void> _share() => showSbtiShareCard(context, _result!);
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +64,7 @@ class _SbtiScreenState extends State<SbtiScreen> {
           child: switch (_stage) {
             _Stage.intro => _Intro(s: s, onStart: _start),
             _Stage.quiz => _Quiz(s: s, index: _answers.length, onAnswer: _answer, onBack: _back),
-            _Stage.result => _Result(s: s, result: _result!, onShare: () => _share(s), onRetake: _start),
+            _Stage.result => _Result(s: s, result: _result!, onShare: _share, onRetake: _start),
           },
         ),
       ),
@@ -358,7 +347,7 @@ class _Result extends StatelessWidget {
           spacing: 8,
           children: [
             OutlinedButton.icon(onPressed: onRetake, icon: const Icon(Icons.refresh), label: Text(s.sbtiRetake)),
-            FilledButton.icon(onPressed: onShare, icon: Icon(kIsWeb ? Icons.copy : Icons.ios_share), label: Text(s.sbtiShare)),
+            FilledButton.icon(onPressed: onShare, icon: const Icon(Icons.image_outlined), label: Text(s.sbtiShare)),
           ],
         ),
         const SizedBox(height: 8),
