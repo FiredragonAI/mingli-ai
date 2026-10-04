@@ -1,144 +1,210 @@
-# 上架 Google Play
+# 上架 Google Play —— 逐步操作手册
 
-产物已经构建好,这份文档是你在 Play Console 里逐屏要填的东西。**上传和发布必须由你本人操作**——注册开发者账号、付费、用你的 Google 账号登录、点"发布",这些我不会代做。
+应用:**知命 · FateCode**(包名 `io.cspeed.mingli_ai`)
+
+产物和素材都已经备好,这份文档是你在 Play Console 里逐屏要填的东西。
+**上传和发布必须由你本人操作**——注册开发者账号、付费、用你的 Google 账号登录、点"发布",这些我不会代做。
+
+> 政策细节 Google 会调整。文档里的数字(测试人数、天数、审核时长)以**你自己 Play Console 页面上显示的要求为准**,这里写的是写作时的情况。
 
 ---
 
-## 0. 先决条件(你来做,约 30 分钟 + 审核等待)
+## 素材清单(现在就能用)
+
+| 东西 | 位置 | 状态 |
+|---|---|---|
+| 应用包(AAB) | `app/build/app/outputs/bundle/release/app-release.aab` | ✅ 104.9 MB,versionCode 1 |
+| 应用图标 512×512 | `app/store/icon-512.png` | ✅ 星轨罗盘,32 位 PNG,无透明像素 |
+| 功能图片 1024×500 | `app/store/feature-1024x500.png` | ✅ 24 位 PNG,无 alpha 通道 |
+| 手机截图 ×8 | `app/store/play-zh/01…08-*.png` | ✅ 1080×2400,**2026-10-03 新拍**,新名字新图标,含 SBTI |
+| 备用截图 | `app/store/play-zh/extra/` | 四柱命盘页、SBTI 介绍页,想换时用 |
+| 隐私政策网址 | https://firedragonai.github.io/mingli-ai/privacy-policy.html | ✅ 已在线 |
+| 商店文案 | 本文第 5 节 | ✅ 中英各一份 |
+| 上传密钥 | `C:\Users\boadb\mingli-upload-keystore.jks` + `app/android/key.properties` | ⚠️ **立刻备份,见第 1 节** |
+
+截图顺序(商店页从左到右就是这个顺序):
+
+1. `01-today.png` 今日运势 + 七个功能入口
+2. `02-input.png` 出生信息录入(真太阳时、时辰三选)
+3. `03-chart-radar.png` 五行雷达 + 喜忌
+4. `04-annual.png` 流年运势 + 十二流月
+5. `05-marriage.png` 我的婚缘
+6. `06-name.png` 姓名测试五格
+7. `07-almanac.png` 黄历
+8. `08-sbti.png` SBTI 性格测试结果
+
+> 建议:`08-sbti.png` 是最容易让人点进来的一张(卡通形象 + 稀有度 4%),
+> 而商店页首屏只露前三张。想要转化率,把它改名成 `02`、其余顺延即可——换个文件名的事。
+
+---
+
+## 0. 先决条件(你来做)
 
 | 事项 | 说明 |
 |---|---|
 | Google 账号 | 用你要长期持有的那个,账号丢了 app 就转不走 |
 | 开发者注册费 | **$25 一次性**,终身有效 |
-| 身份验证 | 个人开发者需上传身份证件,Google 会人工审核(1–3 天,偶尔更久) |
-| 隐私政策 URL | 见下面第 2 节,**必填**,没有它无法提交 |
+| 身份验证 | 个人开发者需上传身份证件,Google 人工审核(1–3 天,偶尔更久) |
+| 设备验证 | 见 0.1,**需要一台真 Android 手机** |
+| 隐私政策 URL | 已就绪,见上表 |
 | D-U-N-S 号码 | 仅**企业**账号需要;个人账号不需要 |
 
 注册入口:<https://play.google.com/console/signup>
 
-> **个人 vs 企业账号**:2023 年起个人开发者账号在正式发布前需要通过"封闭测试"阶段(至少 12 名测试者持续 14 天)。企业账号没有这个要求。如果你打算认真运营,注册企业账号(需要 D-U-N-S)能省掉这一步。
-
-
 ### 0.1 设备验证(注册后会立刻卡住的一屏)
 
-Play Console 会要求你"验证拥有一台 Android 设备":装 **Google Play Console 手机版** → 用注册时的同一个 Google 账号登录 → 选中你的开发者账号 → 按提示完成。
+Play Console 要求你证明"拥有一台 Android 设备":装 **Google Play Console 手机版** → 用注册时的同一个 Google 账号登录 → 选中你的开发者账号 → 按提示完成。
 
-用户没有 Android 手机,按可靠性排序:
+**模拟器这条路已经试过,Google 拒绝了**——它读 `ro.build.characteristics=emulator` 就判定不是真机。伪造这个属性是绕过 Google 的身份校验,我不会做,你也不该做(被发现是封号级别的事)。
 
-1. **借一台 Android 手机,五分钟**——最稳。装 Play Console app,用**自己的**账号登录,验证完退出登录。验证只证明"这个账号能碰到一台真设备",**不会把开发者账号绑到那台手机上**,也不在别人机器上留东西。
-2. **带 Google Play 商店的模拟器**——AVD `play_verify`(`system-images;android-36;google_apis_playstore;x86_64`,Pixel 7,config.ini 里手动改 `PlayStore.enabled=yes`,avdmanager 命令行不会自动设)。**Google 不保证认模拟器**,有人成功有人被拒,值得先试。注意:普通 `google_apis` 镜像没有 Play 商店,装不了 Play Console app。
-3. **买台二手 Android 机**——正式发布前本来就该在真机上过一遍,这钱不算白花。
+可行的办法,按可靠性排序:
+
+1. **借一台 Android 手机,五分钟**——最稳。装 Play Console app,用**自己的**账号登录,验证完退出登录。
+   验证只证明"这个账号能碰到一台真设备",**不会把开发者账号绑定到那台手机**,也不在别人机器上留东西。
+2. **买台二手 Android 机(几百块)**——正式发布前本来就该在真机上过一遍手相/面相和分享功能,这钱不算白花。
+
+### 0.2 个人账号的封闭测试门槛
+
+个人开发者账号在能发布**正式版**之前,需要先跑一轮**封闭测试**:招满一定数量的测试者(写作时是 **12 人**),并且他们要**连续 14 天**保持加入状态。企业账号没有这一条。
+
+这意味着真实时间线大概是:
+
+```
+注册 + 身份验证(1–3 天)
+  → 设备验证(借到手机就是五分钟)
+  → 建应用、填完所有表单、上传 AAB(半天)
+  → 内部测试:自己装上真机验一遍(当天)
+  → 封闭测试:拉满 12 人 × 连续 14 天
+  → 申请正式版权限 → 审核(1–7 天)
+  → 上线
+```
+
+**从今天算,最快也要三周左右**,其中 14 天是硬等待。所以:**先把封闭测试跑起来**,别等素材完美了再开始。
 
 ---
 
-## 1. 产物在哪
+## 1. 上传密钥——现在就备份
 
 ```
-app/build/app/outputs/bundle/release/app-release.aab
+C:\Users\boadb\mingli-upload-keystore.jks      ← 密钥库
+app/android/key.properties                     ← 密码
 ```
 
-这就是上传到 Play Console 的文件(AAB,不是 APK)。
-
-**签名密钥在 `C:\Users\boadb\mingli-upload-keystore.jks`,密码在 `app/android/key.properties` 里。**
-
-> ⚠️ **立刻备份这两个文件到别的地方(网盘、U 盘、密码管理器)。**
-> 弄丢上传密钥,你就无法给这个应用发布任何更新——只能用新的包名重新上架,已有用户全部丢失。
-> 这两个文件都已加入 `.gitignore`,不会进 git,所以 git 不是你的备份。
+> ⚠️ **立刻把这两个文件复制到别处(网盘、U 盘、密码管理器)。**
+> 弄丢上传密钥,你就无法给这个应用发布任何更新——只能换包名重新上架,已有用户全部丢失。
+> 这两个文件都在 `.gitignore` 里,**git 不是你的备份**。
 >
-> 好消息:如果你在 Play Console 开启了 **Play App Signing**(默认开启、推荐),上传密钥万一丢失还可以向 Google 申请重置,不至于彻底没救。但应用签名密钥由 Google 托管,那个是绝对不能丢的——所以务必让 Google 托管,别自己管。
+> 在 Play Console 里保持 **Play App Signing 默认开启**(推荐)。这样应用签名密钥由 Google 托管,
+> 万一上传密钥丢了还能向 Google 申请重置,不至于彻底没救。
 
 ---
 
-## 2. 隐私政策(必填,先做这一步)
+## 2. 一个要先定的事:这版要不要带云端 AI
 
-**已经在线,不用再手动托管**:`.github/workflows/pages.yml` 每次推 main 都会把 `docs/privacy-policy.html` 和网页版一起发到 GitHub Pages。
+现在的 AAB 是**纯离线版**:编译时没有注入服务器地址,所有解读由本机规则引擎生成。
+「更多 AI 解读」那张卡会自动灰掉并给出提示,**不会报错、不会崩**——这是设计好的降级行为。
 
-Play Console 里填这个 URL:
+| | 纯离线版(当前 AAB) | 带云端 AI 版 |
+|---|---|---|
+| 八字/运势/黄历等全部功能 | ✅ 正常 | ✅ 正常 |
+| AI 解读文字 | 本机规则引擎 | Gemini 生成 |
+| 「更多 AI 解读」卡 | 灰掉 | ✅ 可用 |
+| 数据安全表单 | **"不收集任何数据"**,几分钟填完 | 要如实申报,见第 3 节 |
+| 服务器成本 | 0 | Render free 档会休眠,首个请求慢几十秒 |
 
+**建议首次上架用纯离线版**:表单最简单、审核风险最低、没有服务器拖后腿。
+等上线稳定了,再发一版带云端的更新。
+
+想做带云端 AI 的版本,自己在终端跑(**口令从 Render 面板 → mingli-server → Environment → `APP_TOKEN` 复制,不要贴进聊天或仓库**):
+
+```bash
+cd app && flutter build appbundle --release --dart-define=MINGLI_API_URL=https://mingli-server.onrender.com --dart-define=MINGLI_APP_TOKEN=粘贴APP_TOKEN的值
 ```
-https://firedragonai.github.io/mingli-ai/privacy-policy.html
-```
 
-网页版本体在同一站点根:<https://firedragonai.github.io/mingli-ai/>。改隐私政策只需改 `docs/privacy-policy.html` 推上去,几分钟后生效。
-
-> 站点是从仓库 `FiredragonAI/mingli-ai`(公开)自动构建的。密钥(`key.properties`、`.jks`、`server/.env`)都在 `.gitignore` 里,历史中也从未出现过——推送前核查过。
-
+服务器状态可随时查:<https://mingli-server.onrender.com/healthz>
 
 ---
 
-## 3. 数据安全表单(最容易填错的一屏)
+## 3. 数据安全表单
 
-Play Console → 政策 → **应用内容 → 数据安全**。逐项答案如下,这些答案与应用实际行为一致:
+Play Console → **政策 → 应用内容 → 数据安全**。
 
-### 3.1 总述
+### 3.1 纯离线版(推荐,当前 AAB)
 
 | 问题 | 答案 |
 |---|---|
-| 您的应用是否收集或分享任何必需的用户数据类型? | **是**(仅当启用云端解读;见下) |
-| 您应用收集的所有用户数据在传输过程中是否都会加密? | **是**(HTTPS) |
-| 您是否提供让用户请求删除其数据的方式? | **是**——卸载应用或在设置中删除档案即可删除设备上全部数据;服务端不保存可识别到个人的数据 |
+| 您的应用是否收集或分享任何必需的用户数据类型? | **否** |
 
-### 3.2 数据类型逐项
+答"否"之后整张表就结束了。这与应用实际行为一致:出生信息只写在手机本地的
+shared_preferences 里,照片只在设备上分析完即丢弃,没有账号、不联网。
 
-| 数据类型 | 是否收集 | 说明 |
+### 3.2 带云端 AI 版
+
+| 问题 | 答案 |
+|---|---|
+| 是否收集或分享用户数据? | **是** |
+| 传输过程是否加密? | **是**(HTTPS) |
+| 是否提供删除数据的方式? | **是**——卸载或在设置里删除档案即清空本机数据;服务端不保存可识别到个人的数据 |
+
+逐项:
+
+| 数据类型 | 收集? | 说明 |
 |---|---|---|
-| 姓名 | **否** | 仅存本机,从不上传 |
+| 姓名 | **否** | 只存本机,从不上传 |
 | 电子邮件地址 | 否 | 无账号系统 |
-| 用户 ID | **是** → 收集,不分享;用途:**应用功能**(限流防滥用)。勾选"数据是临时处理的"❌ 否;"用户可以请求删除"✅ | 随机生成的设备编号,非广告 ID,卸载重装即更换 |
-| 位置(大致/精确) | **否** | 出生地是用户手动选的省份,只存本机、不上传 |
-| 照片 | **否** | ⬅ 关键:照片仅在设备上处理、不传输、不保存。Google 的规则是"仅在设备本地处理且不离开设备的数据,不算收集" |
-| 相机(作为权限) | 权限声明即可,数据类型里**不勾** | |
-| 应用活动 → 其他用户生成的内容 | **是** → 收集,不分享;用途:**应用功能**;可请求删除 ✅ | 指发送给 AI 的结构化盘面数据(干支、五行占比、评分)。这不含姓名生日,但保守起见如实申报 |
-| 应用信息和性能 → 崩溃日志/诊断 | 否 | 未集成任何崩溃统计 SDK |
-| 设备或其他 ID | 否 | 我们用的是自己生成的随机编号,已在"用户 ID"里申报;不读取 IMEI/Android ID/广告 ID |
+| 用户 ID | **是**,不分享,用途**应用功能**(限流防滥用);"临时处理"❌;"可请求删除"✅ | 随机生成的设备编号,非广告 ID,卸载重装即更换 |
+| 位置 | **否** | 出生地是用户手选的省份,只存本机 |
+| 照片 | **否** | 仅在设备上处理、不传输、不保存。Google 的规则是"仅在设备本地处理且不离开设备的数据不算收集" |
+| 应用活动 → 其他用户生成的内容 | **是**,不分享,用途**应用功能**,可请求删除 ✅ | 指发给 AI 的结构化盘面数据(干支、五行占比、评分),不含姓名生日,保守起见如实申报 |
+| 崩溃日志/诊断 | 否 | 未集成任何崩溃统计 SDK |
+| 设备或其他 ID | 否 | 用的是自己生成的随机编号,已在"用户 ID"里申报;不读 IMEI/Android ID/广告 ID |
 
-> **如果你选择只发布纯离线版**(编译时不带 `MINGLI_API_URL`),那么第一题可以直接答"**否,不收集**",整个表单几分钟填完。这是最省事的上架路径,也最不容易出问题——建议首次上架就这么做,等你把后端部署稳定了,再发一版带云端功能的更新。
-
-### 3.3 照片那一项的补充说明(如果审核问起)
-
-在"数据安全"里有可选的说明框,建议填:
+"照片"那项如果审核追问,在说明框里填:
 
 > 手相/面相功能使用设备端的 MediaPipe 模型分析用户主动选择的照片。照片在应用进程内存中处理后即被丢弃,不写入应用存储、不上传至任何服务器。仅提取无法逆向还原的几何比例数值(如三停比例、掌宽比)。本应用不进行人脸识别、不建立生物特征模板、不做身份比对。
 
 ---
 
-## 4. 内容分级问卷
+## 4. 内容分级、目标受众、广告、应用访问权限
 
-Play Console → 政策 → **应用内容 → 内容分级**。类别选 **"参考、新闻或教育"** 或 **"娱乐"**。
-
-关键问答:
+**内容分级**(政策 → 应用内容 → 内容分级):类别选 **"参考、新闻或教育"** 或 **"娱乐"**。
 
 | 问题 | 答案 |
 |---|---|
 | 暴力、血腥 | 否 |
 | 性内容、裸露 | 否 |
 | 粗俗语言 | 否 |
-| 受管制物质(毒品/烟酒) | 否 |
-| **模拟赌博 / 现实赌博** | **否**(本应用无任何投注、抽奖、付费抽取机制) |
+| 受管制物质 | 否 |
+| **模拟赌博 / 现实赌博** | **否**(无任何投注、抽奖、付费抽取) |
 | 用户可以互相交流 | 否 |
 | 分享用户位置 | 否 |
 | 允许购买数字商品 | 否(当前版本无内购) |
 
-分级结果预计为 **12+ / Teen** 左右。
+分级结果预计 **12+ / Teen** 左右。
 
-### 目标受众和内容
-- 目标年龄段:勾选 **18 岁及以上**(应用含婚恋、感情主题)。
-- **不要**勾选任何 13 岁以下年龄段,否则会触发"面向儿童的应用"政策,要求更严(禁止收集任何标识符等)。
-- "您的应用是否会吸引儿童?" → 否。
+**目标受众和内容**:勾选 **18 岁及以上**(应用含婚恋、感情主题)。
+**不要**勾任何 13 岁以下年龄段,否则触发"面向儿童的应用"政策,要求严得多。
+"您的应用是否会吸引儿童?" → **否**。
+
+**广告**:选 **"不含广告"**。
+**应用访问权限**:选 **"所有功能均可使用,无需特殊访问权限"**(没有登录墙)。
+**政府应用**:否。**金融功能**:否。**健康应用**:否(重要,别选)。
 
 ---
 
 ## 5. 商店详情文案
 
-### 应用名称(50 字符内)
-- 中文:`知命 - 八字命盘与每日运势`
-- English:`FateCode — BaZi Chart & Daily Fortune`
+### 应用名称(30 字符内)
+- 中文:`知命 - 八字命盘与性格测试`
+- English:`FateCode — BaZi Chart & Fortune`
+
+> 上架前先在 Play 商店搜一下"知命",确认没有同名应用抢占心智或引起混淆。
 
 ### 简短说明(80 字符内)
-- 中文:`专业八字排盘,天文级精度。每日运势、流年、合婚、姓名、黄历,离线可用。`
-- English:`Astronomy-grade BaZi charts, daily fortune, annual luck, compatibility — works offline.`
+- 中文:`专业八字排盘,天文级精度。每日运势、流年、合婚、姓名、黄历、SBTI 性格测试。`
+- English:`Astronomy-grade BaZi charts, daily fortune, compatibility, and the SBTI quiz.`
 
-### 完整说明(4000 字符内,中文版)
+### 完整说明(4000 字符内,中文)
 
 ```
 知命 是一款把传统命理算得准、讲得明白的工具。
@@ -158,10 +224,11 @@ Play Console → 政策 → **应用内容 → 内容分级**。类别选 **"参
 · 星座 — 太阳星座与上升星座(按回归黄道严格推算,换宫日也准)
 · 姓名测试 — 五格剖象,内置 10 万字康熙笔画字典
 · 黄历 — 建除、值神、二十八宿、宜忌、彭祖百忌
+· SBTI 性格测试 — 15 道三选一,21 种人设,配原创卡通形象,结果可生成海报分享
 · 手相 / 面相 — 照片只在手机上分析,不上传、不保存
 
 【解读风格】
-专业术语第一次出现就配大白话解释,每段配一个生活化的比喻。既说得出"为什么"(每条结论都能追溯到命盘依据),又不端着架子。
+专业术语第一次出现就配大白话解释,每段配一个生活化的比喻。既说得出"为什么"(每条结论都能追溯到命盘依据),又不端着架子。部分解读文字由 AI 生成。
 
 【隐私】
 · 没有账号,不要手机号,不要邮箱
@@ -170,7 +237,7 @@ Play Console → 政策 → **应用内容 → 内容分级**。类别选 **"参
 · 可在设置中开启"始终离线",应用将完全不联网
 
 【声明】
-本应用内容基于中国传统文化整理,仅供娱乐与文化参考,不构成任何医疗、法律、投资或婚恋建议,亦不具备科学预测能力。请勿据此作出重大人生决策。
+本应用内容基于中国传统文化整理,仅供娱乐与文化参考,不构成任何医疗、法律、投资或婚恋建议,亦不具备科学预测能力。SBTI 性格测试纯属玩梗,不构成任何人格评价或心理测评。请勿据此作出重大人生决策。
 ```
 
 ### 完整说明(English)
@@ -193,93 +260,104 @@ FEATURES
 · Zodiac — sun and rising signs computed from the tropical ecliptic, accurate even on cusp days
 · Name analysis — five-grid method with a 100k-character Kangxi stroke dictionary
 · Almanac — officers of the day, 28 mansions, do & avoid
+· SBTI — a 15-question personality quiz with 21 original illustrated types and a shareable poster
 · Palm & Face — photos analysed entirely on device, never uploaded
 
 PRIVACY
 No accounts. No phone number. No email. Birth details stay on your device. Palm and face photos are analysed on-device and discarded immediately — never uploaded, and no facial recognition is performed. A settings switch makes the app fully offline.
 
 DISCLAIMER
-Content is compiled from Chinese traditional culture for entertainment and cultural reference only. It is not medical, legal, financial or relationship advice and has no scientific predictive validity.
+Content is compiled from Chinese traditional culture for entertainment and cultural reference only. It is not medical, legal, financial or relationship advice and has no scientific predictive validity. Some interpretation text is AI-generated. The SBTI quiz is a joke format, not a psychological assessment.
 ```
 
 ### 分类与标签
 - 应用类别:**生活时尚(Lifestyle)**
-- 标签:命理、八字、运势、黄历、星座 / astrology, fortune, lifestyle
+- 标签:命理、八字、运势、黄历、星座、性格测试 / astrology, fortune, lifestyle, personality
 
 ---
 
-## 6. 素材规格
+## 6. 上传步骤(按顺序做)
 
-| 素材 | 规格 | 状态 |
-|---|---|---|
-| 应用图标 | 512×512 PNG,32 位,无 alpha | ⚠️ **待做**——现在是 Flutter 默认图标 |
-| 功能图片(Feature graphic) | 1024×500 PNG/JPG,无 alpha | ⚠️ **待做**,必填 |
-| 手机截图 | 至少 2 张,最多 8 张;16:9 或 9:16,每边 320–3840 px | ⚠️ **待做** |
-| 平板截图 | 可选 | — |
+### 第 1 步 · 创建应用
+Play Console → **所有应用 → 创建应用**
+- 应用名称:`知命 - 八字命盘与性格测试`
+- 默认语言:**简体中文(zh-CN)**(上线后可再加 English、繁體中文)
+- 应用或游戏:**应用**
+- 免费或付费:**免费**(⚠️ 免费改付费不可逆,付费可以改免费)
+- 勾选开发者计划政策与美国出口法规两个声明
 
-**截图怎么取**:接上 Android 手机(开发者模式 + USB 调试)后
+### 第 2 步 · 填完"应用内容"里的每一项
+左侧 **政策 → 应用内容**。每一项都是必填,没填完不能提交审核:
+- 隐私政策 → 填 `https://firedragonai.github.io/mingli-ai/privacy-policy.html`
+- 广告 → 不含广告
+- 应用访问权限 → 所有功能均可使用
+- 内容分级 → 按第 4 节答问卷
+- 目标受众和内容 → 18 岁及以上
+- 新闻应用 → 否
+- 新冠接触者追踪 → 否
+- 数据安全 → 按第 3 节
+- 政府应用 / 金融功能 / 健康 → 都是否
 
-```bash
-cd app && flutter run --release
-```
+### 第 3 步 · 先发内部测试
+左侧 **测试 → 内部测试 → 创建新版本**
+- **Play App Signing:保持默认开启**
+- 上传 `app/build/app/outputs/bundle/release/app-release.aab`
+- 版本名称:`0.1.0 (1)`;版本说明:`首个版本`
+- 建一个测试者名单,把自己的 Gmail 加进去 → 保存 → 发布
 
-在手机上逐屏截图(电源键+音量下),或用 `adb exec-out screencap -p > shot1.png`。建议这五张:今日页、八字命盘、流年(带犯太岁提醒)、我的婚缘、黄历。
+内部测试几乎不用审核,链接发给自己,在**真机**上装一遍,重点验:
+启动、建档案排盘、今日运势、SBTI 测完能生成海报并分享、手相/面相选图、黄历翻页。
 
-**没有 Android 手机的话**:用模拟器。需要额外装系统镜像:
+### 第 4 步 · 商店详情
+左侧 **增长 → 商店发布 → 主要商店详情**,按第 5 节填文案,上传:
+- 应用图标 ← `app/store/icon-512.png`
+- 功能图片 ← `app/store/feature-1024x500.png`
+- 手机截图 ← `app/store/play-zh/01…08-*.png`(按编号顺序拖进去)
 
-```bash
-sdkmanager "system-images;android-36;google_apis;x86_64" "emulator"
-avdmanager create avd -n pixel -k "system-images;android-36;google_apis;x86_64" -d pixel_7
-emulator -avd pixel
-```
+### 第 5 步 · 封闭测试(个人账号必经)
+左侧 **测试 → 封闭测试 → 创建新版本**,用同一个 AAB。
+招满要求人数的测试者(微信群、朋友、同事都算,要他们**用 Gmail 加入并保持 14 天**),
+然后**老老实实等满 14 天**。中途有人退出会重新计时,所以多拉几个人留余量。
 
-图标和功能图片建议找设计做,或用 Canva 套模板——这两张是商店页的第一印象,值得花时间。
+### 第 6 步 · 申请正式版权限 → 发布
+满足条件后 Play Console 会出现"申请正式版访问权限"的入口,填一份关于测试情况的问卷。
+通过后:左侧 **正式版 → 创建新版本** → 上传 AAB → **提交审核**。
+首次审核通常 1–7 天。
 
 ---
 
-## 7. 上传步骤
-
-1. 登录 <https://play.google.com/console> → **创建应用**
-   - 应用名称:`知命`
-   - 默认语言:简体中文(之后可添加英文、繁体中文本地化)
-   - 应用或游戏:**应用**;免费或付费:**免费**
-2. 左侧 **政策 → 应用内容**,依次完成:隐私政策 URL、广告(选"否")、应用访问权限(选"所有功能均可使用,无需特殊访问权限")、内容分级、目标受众、数据安全(照第 3、4 节填)
-3. 左侧 **发布 → 正式版**(或先走 **内部测试**,强烈建议)→ 创建新版本
-   - 上传 `app-release.aab`
-   - Play App Signing:**保持默认开启**
-   - 版本说明:`首个版本`
-4. 填 **商店详情**:名称、简短说明、完整说明、图标、功能图片、截图(第 5、6 节)
-5. 提交审核。首次审核通常 1–7 天。
-
-> **强烈建议先发内部测试版**:内部测试不需要审核(或极快),最多 100 人,你可以自己先装上真机验证手相面相、AI 解读是否正常,再转正式版。直接发正式版一旦有问题,修复要重新排队审核。
-
----
-
-## 8. 这个应用特有的审核风险
+## 7. 这个应用特有的审核风险
 
 | 风险点 | 状态 | 建议 |
 |---|---|---|
 | **占卜/算命类内容** | Google Play 允许,不像国内商店那样禁止 | 商店文案里已有免责声明,保留它;不要写"预测未来""改运""化解"这类措辞 |
 | **相机权限** | 已声明为非必需(`required="false"`) | 审核若问用途,答:用户主动使用手相/面相功能时拍照,照片仅在设备端分析 |
-| **照片/生物特征** | 端侧处理、不上传 | 数据安全表单按第 3.3 节填写说明。**不要**在任何文案里用"人脸识别"字样,我们做的是几何比例测量 |
+| **照片/生物特征** | 端侧处理、不上传 | 按 3.2 的说明填。**不要**在任何文案里用"人脸识别"字样,我们做的是几何比例测量 |
 | **健康声明** | 解读文字已过滤疾病/死亡类表述 | 不要在商店文案里提健康、治疗、疾病 |
-| **AI 生成内容** | 需在文案中说明 | 完整说明里已写"解读文字由 AI 生成" |
+| **AI 生成内容** | 需在文案中说明 | 完整说明里已写"部分解读文字由 AI 生成" |
+| **SBTI 像心理测评** | 文案和应用内都写了"纯属玩梗,不构成人格评价或心理测评" | 保留这句话,别改成"科学测评" |
 | **targetSdk** | 36,满足 2026 年要求 | — |
 
 ---
 
-## 9. 后续更新怎么发
+## 8. 后续更新怎么发
 
-改完代码后:
+改完代码:
 
 ```bash
 cd app && flutter build appbundle --release
 ```
 
-每次发版要在 `app/pubspec.yaml` 里把 `version: 0.1.0+1` 的 **build number(加号后面那位)递增**,否则 Play Console 会拒绝("版本代码已存在")。然后在 Play Console 创建新版本、上传新的 aab 即可。
+每次发版要在 `app/pubspec.yaml` 把 `version: 0.1.0+1` 的 **build number(加号后面那位)递增**,
+否则 Play Console 会拒绝("版本代码已存在")。然后在 Play Console 创建新版本、上传新 aab。
 
-带云端 AI 的版本:
+重拍商店截图:模拟器装上 release APK,用 `adb exec-out screencap -p > xx.png`。
+状态栏要干净就先开演示模式:
 
 ```bash
-flutter build appbundle --release --dart-define=MINGLI_API_URL=https://你的地址 --dart-define=MINGLI_APP_TOKEN=你的口令
+adb shell settings put global sysui_demo_allowed 1
+adb shell am broadcast -a com.android.systemui.demo -e command enter
+adb shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm 0900
+adb shell am broadcast -a com.android.systemui.demo -e command battery -e level 100 -e plugged false
+adb shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false
 ```

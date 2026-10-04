@@ -66,7 +66,15 @@ class _NamingScreenState extends State<NamingScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  FilledButton(onPressed: _analyze, child: Text(s.analyze)),
+                  // 主题给 FilledButton 定的 minimumSize 是 Size.fromHeight(48)——
+                  // 它的宽度是 double.infinity,用来让按钮在竖排里自动撑满一行。
+                  // 放进 Row 就成了灾难:按钮要无限宽,同排的 Expanded 输入框被挤成
+                  // 零宽,整行只剩一条竖线。这里必须给一个有限宽度覆盖掉它。
+                  FilledButton(
+                    onPressed: _analyze,
+                    style: FilledButton.styleFrom(minimumSize: const Size(88, 48)),
+                    child: Text(s.analyze),
+                  ),
                 ],
               ),
               if (r != null) ...[
