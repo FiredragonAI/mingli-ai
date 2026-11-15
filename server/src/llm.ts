@@ -111,13 +111,13 @@ export async function interpret(
   // 「更多解读」(mode: "more")降一档思考强度。
   //
   // 为什么:客户端的 HTTP 超时是 60 秒(ApiClient.timeout,编译进 app 里改不了),
-  // 服务端自己的上限是 LLM_TIMEOUT_MS = 120 秒。2026-11-15 实测 effort: "high"
-  // 配 6000 maxOutputTokens 写一篇中文长文经常超过 120 秒,服务端先回 504
-  // 「解读超时」,而 app 其实 60 秒就已经放弃了——「更多 AI 解读」卡没有本地兜底,
-  // 用户直接看到 TimeoutException。
+  // 服务端自己的上限是 LLM_TIMEOUT_MS = 120 秒。2026-11-15 实测两边都会被突破,
+  // 服务端先回 504「解读超时」,而 app 其实 60 秒就已经放弃了——「更多 AI 解读」
+  // 卡按设计没有本地兜底,用户直接看到 TimeoutException。
   //
-  // 「更多解读」本来就是"换个模型、换三个角度"的补充视角,不是主解读,
-  // medium 足够;主解读(走本地兜底、失败用户无感)保持 high。
+  // 这个档位具体落到哪个参数由各家 provider 自己决定(Gemini 见
+  // providers/gemini.ts 里的 thinkingLevel 映射),这里只表达意图:
+  // 「更多解读」是"换个模型、换三个角度"的补充视角,不是主解读,可以想得浅一些。
   const effort = payload.mode === "more" ? "medium" : "high";
   const first = await llm.complete(system, [{ role: "user", content: user }], { effort });
   let text = first.text.trim();

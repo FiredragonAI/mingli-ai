@@ -32,6 +32,11 @@ export const config = {
   // Gemini(REST,不引 SDK)。模型名以 ai.google.dev/gemini-api/docs/models 为准
   geminiApiKey: process.env.GEMINI_API_KEY?.trim() ?? "",
   geminiModel: process.env.GEMINI_MODEL ?? "gemini-3.8-flash",
+  /// 思考深度,直接填进 generationConfig.thinkingConfig.thinkingLevel。
+  /// 必须是大写枚举(MINIMAL/LOW/MEDIUM/HIGH/XHIGH)——REST 接口和 Interactions API
+  /// 不一样,后者才是小写的 thinking_level。空字符串 = 不发这个字段:
+  /// 「不支持思考的模型收到 thinkingConfig 会直接报错」,所以换老模型时要清空。
+  geminiThinkingLevel: process.env.GEMINI_THINKING_LEVEL?.trim().toUpperCase() ?? "",
 
   // 两家共用
   maxTokens: Number(process.env.LLM_MAX_TOKENS ?? process.env.CLAUDE_MAX_TOKENS ?? 6000),

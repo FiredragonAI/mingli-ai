@@ -25,11 +25,18 @@ services:
         value: claude-opus-5
       - key: CLAUDE_EFFORT
         value: high
-      # 6000 太大:2026-11-15 实测写一篇中文长解读经常超过 LLM_TIMEOUT_MS(120 秒),
-      # 服务端回 504,而 app 的 HTTP 超时只有 60 秒、「更多 AI 解读」卡又没有本地兜底,
-      # 测试者看到的就是 TimeoutException。3500 够写完整结构,也能压进 60 秒内。
+      # 别为了提速调小这个值:思考 token 也算在 maxOutputTokens 里,调小的后果是
+      # 模型"想"到一半就被截断,返回空文本(gemini.ts 会抛「Gemini 返回空文本」),
+      # 而不是更快出结果。官方建议降 thinkingLevel 而不是砍 maxOutputTokens
+      # ——见下面的 GEMINI_THINKING_LEVEL。
       - key: LLM_MAX_TOKENS
-        value: "3500"
+        value: "6000"
+      # 思考深度。gemini-3.8-flash 默认 MEDIUM,实测写中文长解读常常超过
+      # LLM_TIMEOUT_MS(120 秒);LOW 用在没有本地兜底的「更多 AI 解读」上。
+      # 取值 MINIMAL/LOW/MEDIUM/HIGH/XHIGH(3.8-flash 不支持 MINIMAL);
+      # 留空则完全不发 thinkingConfig(换回 Gemini 2.x 这类不支持思考的模型时要留空)。
+      - key: GEMINI_THINKING_LEVEL
+        value: "LOW"
       # ---- 访问控制 ----
       # Render 自动生成一个随机口令;网页版由 GitHub Actions 用仓库密钥 MINGLI_APP_TOKEN 带进去,
       # 原生版编译时用 --dart-define=MINGLI_APP_TOKEN=<这个值>

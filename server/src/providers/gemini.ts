@@ -22,11 +22,35 @@ export function geminiProvider(): LlmProvider {
     log.error("LLM_PROVIDER=gemini 但没有 GEMINI_API_KEY");
   }
 
-  async function complete(system: string, turns: Turn[], _opts: CompleteOptions): Promise<Completion> {
+  async function complete(system: string, turns: Turn[], opts: CompleteOptions): Promise<Completion> {
+    // 思考深度。这里原本整个 opts 都没用(参数名还写着 _opts),所以不管上层传
+    // high 还是 medium,Gemini 一律跑它自己的默认档——gemini-3.8-flash 的默认是
+    // MEDIUM,而 2026-11-15 实测 MEDIUM 写一篇中文长解读经常超过 120 秒,
+    // 服务端回 504「解读超时」,app 其实 60 秒就先放弃了。
+    //
+    // 映射故意是保守的:
+    //   high   → MEDIUM  主解读。等于保持今天的实际行为,不会让它变得更慢
+    //                    (真发 HIGH 只会更容易超时);失败还有本机规则引擎兜底。
+    //   medium → LOW     「更多 AI 解读」。这张卡按设计没有本地兜底,超时会把
+    //                    报错直接糊在用户脸上,所以优先保证它能在 60 秒内回来。
+    //
+    // 注意大小写:REST 的 generateContent 收的是大写枚举,小写的 thinking_level
+    // 是另一套 Interactions API 的写法,填错不会被忽略而是报错。
+    const level = config.geminiThinkingLevel
+      ? opts.effort === "high"
+        ? "MEDIUM"
+        : config.geminiThinkingLevel
+      : "";
     const body = {
       systemInstruction: { parts: [{ text: system }] },
       contents: turns.map((t) => ({ role: t.role === "assistant" ? "model" : "user", parts: [{ text: t.content }] })),
-      generationConfig: { maxOutputTokens: config.maxTokens, temperature: 0.8 },
+      generationConfig: {
+        maxOutputTokens: config.maxTokens,
+        // temperature 在 gemini-3.6-flash 及更新的模型上会被静默忽略,留着只是
+        // 为了换回老模型时还有效,别指望它在 3.8-flash 上起作用。
+        temperature: 0.8,
+        ...(level ? { thinkingConfig: { thinkingLevel: level } } : {}),
+      },
     };
 
     const res = await post(`${BASE}/models/${encodeURIComponent(model)}:generateContent`, body);
