@@ -68,7 +68,7 @@ class ApiClient {
   final http.Client _client;
   final Duration timeout;
 
-  static const appVersion = '0.1.0';
+  static const appVersion = '0.1.1';
 
   Map<String, String> get _headers => {
         'Content-Type': 'application/json; charset=utf-8',
