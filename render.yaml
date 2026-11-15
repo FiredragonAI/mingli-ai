@@ -25,8 +25,11 @@ services:
         value: claude-opus-5
       - key: CLAUDE_EFFORT
         value: high
+      # 6000 太大:2026-11-15 实测写一篇中文长解读经常超过 LLM_TIMEOUT_MS(120 秒),
+      # 服务端回 504,而 app 的 HTTP 超时只有 60 秒、「更多 AI 解读」卡又没有本地兜底,
+      # 测试者看到的就是 TimeoutException。3500 够写完整结构,也能压进 60 秒内。
       - key: LLM_MAX_TOKENS
-        value: "6000"
+        value: "3500"
       # ---- 访问控制 ----
       # Render 自动生成一个随机口令;网页版由 GitHub Actions 用仓库密钥 MINGLI_APP_TOKEN 带进去,
       # 原生版编译时用 --dart-define=MINGLI_APP_TOKEN=<这个值>
