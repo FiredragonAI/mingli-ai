@@ -84,7 +84,16 @@ async function handle(kind: Kind, req: Request, res: Response): Promise<void> {
       // 厂商差异已在 providers/ 里归一化,这里只看 reason
       switch (err.reason) {
         case "rate":
-          res.status(503).json({ error: "解读服务繁忙,请稍后再试" });
+          // 免费层的 429 有两种,对用户是完全不同的两件事,不能都说"稍后再试":
+          //   · 每天 N 次用完了      → 今天不会再好了,要等太平洋时间零点重置
+          //   · 每分钟次数/并发撞了  → 几十秒后重试就行
+          // Google 的报错文案里带 "per day" / "PerDay",用它来区分。
+          if (/per\s*day|PerDay/i.test(err.message)) {
+            req.log.warn({ status: err.status }, "free tier daily quota exhausted");
+            res.status(429).json({ error: "今天的免费 AI 额度用完了,明天再来" });
+          } else {
+            res.status(503).json({ error: "解读服务繁忙,请稍后再试" });
+          }
           break;
         case "auth":
           req.log.error({ status: err.status }, "model credentials invalid");

@@ -16,8 +16,12 @@ services:
         value: gemini
       - key: GEMINI_API_KEY
         sync: false
+      # 2026-11-15 从 gemini-3.8-flash 换到 flash-lite。原因是免费层的每日配额按模型算,
+      # 3.8-flash 只有 20 次/天(AI Studio 的 rate limit 页实测:5 RPM / 250K TPM / 20 RPD),
+      # 12 个封闭测试的人一天就能用光。flash-lite 是官方口径里"最快、最省、面向高吞吐"的那档,
+      # 顺带也能缓解超时——详见 GEMINI_THINKING_LEVEL 上面那段。
       - key: GEMINI_MODEL
-        value: gemini-3.8-flash
+        value: gemini-3.5-flash-lite
       # 想同时开 Claude 就填这个;留空则 /v1/interpret 里指定 provider=claude 会返回 503
       - key: ANTHROPIC_API_KEY
         sync: false
@@ -31,12 +35,13 @@ services:
       # ——见下面的 GEMINI_THINKING_LEVEL。
       - key: LLM_MAX_TOKENS
         value: "6000"
-      # 思考深度。gemini-3.8-flash 默认 MEDIUM,实测写中文长解读常常超过
-      # LLM_TIMEOUT_MS(120 秒);LOW 用在没有本地兜底的「更多 AI 解读」上。
-      # 取值 MINIMAL/LOW/MEDIUM/HIGH/XHIGH(3.8-flash 不支持 MINIMAL);
-      # 留空则完全不发 thinkingConfig(换回 Gemini 2.x 这类不支持思考的模型时要留空)。
+      # 思考深度(只影响「更多 AI 解读」那条路径,主解读固定走 MEDIUM,见 gemini.ts)。
+      # 取值 MINIMAL/LOW/MEDIUM/HIGH/XHIGH,注意是大写;留空则完全不发 thinkingConfig
+      # (换回 Gemini 2.x 这类不支持思考的模型时必须留空,否则直接报错)。
+      # MINIMAL 在 gemini-3.5-flash-lite 上可用(3.8-flash 不支持,换回去要改成 LOW)。
+      # 这里压到最低是因为客户端 60 秒就超时,而实测慢的那部分几乎全在思考上。
       - key: GEMINI_THINKING_LEVEL
-        value: "LOW"
+        value: "MINIMAL"
       # ---- 访问控制 ----
       # Render 自动生成一个随机口令;网页版由 GitHub Actions 用仓库密钥 MINGLI_APP_TOKEN 带进去,
       # 原生版编译时用 --dart-define=MINGLI_APP_TOKEN=<这个值>
