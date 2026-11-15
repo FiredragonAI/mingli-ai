@@ -153,10 +153,19 @@ class ApiClient {
   ) =>
       _post('/v1/interpret/zodiac', {'zodiac': zodiac, 'match': match, 'chart': chart});
 
-  /// 健康检查。
+  /// 健康检查,同时用来把休眠的服务端叫醒。
+  ///
+  /// 90 秒不是写错了。服务端跑在 Render 免费档,闲置 15 分钟就休眠,
+  /// 冷启动官方口径是"可能延迟 50 秒以上"。原来这里是 5 秒,结果是:
+  /// 服务端只是在醒,app 却判定它不可达,两张 AI 卡直接灰掉——而灰掉就
+  /// 发不出请求,也就没有失败能触发重新探测,用户再也拿不到云端解读。
+  /// 调用方不 await 它(见 AppState.init),所以等久一点不影响启动。
+  ///
+  /// 离线包指向 localhost:8787,没人监听时 connection refused 立刻返回,
+  /// 不会在这儿空等。
   Future<bool> ping() async {
     try {
-      final res = await _client.get(Uri.parse('$baseUrl/healthz')).timeout(const Duration(seconds: 5));
+      final res = await _client.get(Uri.parse('$baseUrl/healthz')).timeout(const Duration(seconds: 90));
       return res.statusCode == 200;
     } catch (_) {
       return false;

@@ -1,6 +1,7 @@
 /// 应用状态。
 library;
 
+import 'dart:async' show unawaited;
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:flutter/foundation.dart';
@@ -77,8 +78,9 @@ class AppState extends ChangeNotifier {
     }
     if (active != null) _recompute();
     notifyListeners();
-    serverReachable = await api.ping();
-    notifyListeners();
+    // 故意不 await:这个 ping 可能要等几十秒(见 refreshServerStatus 的说明),
+    // 启动页不能陪着挂。先把界面放出去,可达状态回来了再 notify。
+    unawaited(refreshServerStatus());
   }
 
   void _recompute() {
@@ -142,7 +144,20 @@ class AppState extends ChangeNotifier {
 
   Future<void> resetServerUrl() => setServerUrl(defaultServerUrl);
 
-  /// 重新探测云端是否可达(解读失败后、或从后台回来时调用)。
+  /// 探测云端是否可达,**顺便把它叫醒**(启动时、解读失败后调用)。
+  ///
+  /// 服务端在 Render 免费档上,闲置 15 分钟就休眠,冷启动 Render 自己说
+  /// "can delay requests by 50 seconds or more"。所以这个请求有两重作用:
+  /// 判断可达性,以及用它把实例唤醒——等用户看完命盘再去点 AI 解读时,
+  /// 服务端已经热了。
+  ///
+  /// 两张 AI 卡都是拿 [serverReachable] 决定灰不灰的,所以**不能**因为冷启动慢
+  /// 就判成"不可达":那样封闭测试的人隔一会儿打开 app,卡永远是灰的,
+  /// 而且灰了就发不出请求,也就没有失败能触发重新探测——死在那儿了。
+  /// ping 的超时放宽到 90 秒就是为了盖住冷启动,见 ApiClient.ping。
+  ///
+  /// 纯离线包不受影响:它的地址是 localhost:8787,没人监听,connection refused
+  /// 立刻返回,不会在这儿等满 90 秒,卡照样自动灰掉。
   Future<void> refreshServerStatus() async {
     final ok = await api.ping();
     if (ok != serverReachable) {
