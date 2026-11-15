@@ -167,3 +167,23 @@ images/phoneScreenshots/*.png  至少 2 张,按文件名排序
 | `invalid_grant` / `Invalid JWT` | 服务账号密钥失效,或本机时间不准 |
 
 `play-release.cmd` **必须保持纯 ASCII**:cmd.exe 在 `chcp 65001` 生效之前就按系统码页解析整个文件,里面有中文注释会直接把命令解析坏。
+
+---
+
+## 英文商店页为什么还没上
+
+`metadata/android/` 下**只有 `zh-CN`**,这是故意的。
+
+英文文案已经写好,和英文界面截图一起放在仓库外的暂存区:
+
+```
+app/store/en-US-draft/     标题、简介、完整说明、更新说明 + 说明文件
+app/store/play-en/         英文界面的真机截图
+```
+
+没放进 `metadata/android/en-US/` 是为了**防止 `metadata` lane 把半成品传上去**。
+卡点是英文界面里还有 95 个词条显示中文(二十八宿、黄历宜忌活动、神煞、彭祖百忌),
+截图上一眼可见。详情和待办见 `app/store/en-US-draft/README.md`。
+
+补完翻译、修掉「Avoid」徽标溢出、重拍截图之后,把那两个目录的内容移进
+`metadata/android/en-US/`,再跑 `play-release.cmd metadata` 即可。

@@ -1,0 +1,25 @@
+FateCode computes Chinese BaZi (Four Pillars) astrology with real astronomical precision — and explains it in plain language.
+
+ACCURACY
+· The 24 solar terms are computed live with the VSOP87 planetary theory, accurate to the minute
+· True lunar calendar using actual new moons and solar terms, handling edge cases like the 2033 leap month
+· True solar time correction by birth longitude and the equation of time
+· Everything is computed on your device — no network required
+
+FEATURES
+· Today — daily score, theme, do & avoid, auspicious hours, and one thing not to do today
+· BaZi chart — four pillars, hidden stems, Ten Gods, symbolic stars, element radar, luck-cycle timeline
+· Year ahead — annual fortune, Tai Sui alerts, month-by-month trend
+· My romance — spouse star, marriage palace and timing windows, no partner data needed
+· Compatibility — six-dimension match plus zodiac pairing
+· Zodiac — sun and rising signs computed from the tropical ecliptic, accurate even on cusp days
+· Name analysis — five-grid method with a 100k-character Kangxi stroke dictionary
+· Almanac — officers of the day, 28 mansions, do & avoid
+· SBTI — a 15-question personality quiz with 21 original illustrated types and a shareable poster
+· Palm & Face — photos analysed entirely on device, never uploaded
+
+PRIVACY
+No accounts. No phone number. No email. Birth details stay on your device. Palm and face photos are analysed on-device and discarded immediately — never uploaded, and no facial recognition is performed. A settings switch makes the app fully offline.
+
+DISCLAIMER
+Content is compiled from Chinese traditional culture for entertainment and cultural reference only. It is not medical, legal, financial or relationship advice and has no scientific predictive validity. Some interpretation text is AI-generated. The SBTI quiz is a joke format, not a psychological assessment.
