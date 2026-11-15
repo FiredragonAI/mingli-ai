@@ -119,7 +119,16 @@ class S {
   String get birthDetails => _('出生信息', 'Birth details');
   String get partnerBirthDetails => _('对方出生信息', "Partner's birth details");
   String get firstRunTitle => _('请填写出生信息', 'Enter your birth details');
-  String get privacyNote => _('所有推算均在本机完成,信息不会上传。', 'All calculations run on this device; nothing is uploaded.');
+  // 别改回"信息不会上传"。从 0.1.1(云端 Gemini 版)起这句话就不成立了:
+  // 用户点「更多 AI 解读」时,算好的盘面会发给服务器。推算本身确实全在本机,
+  // 姓名也确实永不出设备(BaziChart.toJson() 会摘掉,由
+  // test/chart_payload_privacy_test.dart 守着),但盘面本身是要上传的。
+  // 现在这句在纯离线包和云端包里都成立。隐私政策 docs/privacy-policy.html 同口径。
+  String get privacyNote => _(
+        '所有推算均在本机完成;姓名和照片永不上传。AI 解读需联网时只发算好的盘面。',
+        'All calculations run on this device. Your name and photos are never uploaded; '
+            'online AI readings send only the computed chart.',
+      );
   String get nameOptional => _('姓名(选填,用于姓名测试)', 'Name (optional, for name analysis)');
   String get male => _('男 · 乾造', 'Male');
   String get female => _('女 · 坤造', 'Female');

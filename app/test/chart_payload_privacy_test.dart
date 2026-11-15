@@ -12,10 +12,12 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mingli_ai/core/bazi/bazi_chart.dart';
+import 'package:mingli_ai/l10n/app_language.dart';
+import 'package:mingli_ai/l10n/strings.dart';
 
 void main() {
   const name = '林知远';
-  final input = BirthInput(
+  const input = BirthInput(
     year: 1995,
     month: 6,
     day: 15,
@@ -49,5 +51,25 @@ void main() {
     expect(i['day'], 15);
     expect(i['hour'], 12);
     expect(chart.toJson()['summary'], isNotEmpty);
+  });
+  // 录入页那句承诺要跟代码对得上。0.1.1 起打的是云端包:点「更多 AI 解读」会把
+  // 算好的盘面发给服务器,所以不能再说"信息不会上传"。姓名是真的不发(上面三个
+  // 测试守着),盘面是真的要发——两件事都得说准。
+  group('出生信息录入页的隐私承诺', () {
+    for (final lang in AppLanguage.values) {
+      test('${lang.code}:不能声称什么都不上传', () {
+        final note = S(lang).privacyNote;
+        expect(note, isNotEmpty);
+        expect(note.contains('不会上传'), isFalse,
+            reason: '云端包会上传盘面,这句话不成立');
+        expect(RegExp('nothing is uploaded', caseSensitive: false).hasMatch(note), isFalse,
+            reason: '英文同理');
+      });
+    }
+
+    test('姓名永不上传这条要写出来(这是真的,别漏说)', () {
+      expect(const S(AppLanguage.zhHans).privacyNote, contains('姓名'));
+      expect(const S(AppLanguage.en).privacyNote.toLowerCase(), contains('name'));
+    });
   });
 }
