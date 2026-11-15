@@ -1,9 +1,12 @@
 # 上架 Google Play —— 逐步操作手册
 
-应用:**知命 · FateCode**(包名 `io.cspeed.mingli_ai`)
+应用:**知命 · FateCode**(包名 `io.github.firedragonai.mingli_ai`)
 
 产物和素材都已经备好,这份文档是你在 Play Console 里逐屏要填的东西。
 **上传和发布必须由你本人操作**——注册开发者账号、付费、用你的 Google 账号登录、点"发布",这些我不会代做。
+
+> **构建和上传已经自动化了**:仓库根目录的 `play-release.cmd` 会跑测试、自动排版本号、构建并校验 AAB、传到内部测试轨道,商店文案和截图也能一条命令同步。见 [PLAY_RELEASE.md](PLAY_RELEASE.md)。
+> 这份文档管的是**只能你在 Play Console 里点的那些事**:建应用、各种问卷、封闭测试、送审发布。
 
 > 政策细节 Google 会调整。文档里的数字(测试人数、天数、审核时长)以**你自己 Play Console 页面上显示的要求为准**,这里写的是写作时的情况。
 
@@ -20,7 +23,7 @@
 | 备用截图 | `app/store/play-zh/extra/` | 四柱命盘页、SBTI 介绍页,想换时用 |
 | 隐私政策网址 | https://firedragonai.github.io/mingli-ai/privacy-policy.html | ✅ 已在线 |
 | 商店文案 | 本文第 5 节 | ✅ 中英各一份 |
-| 上传密钥 | `C:\Users\boadb\mingli-upload-keystore.jks` + `app/android/key.properties` | ⚠️ **立刻备份,见第 1 节** |
+| 上传密钥 | `C:\Users\boadb\fatecode-upload-firedragonai.jks` + `app/android/key.properties` | ⚠️ **立刻备份,见第 1 节** |
 
 截图顺序(商店页从左到右就是这个顺序):
 
@@ -86,7 +89,7 @@ Play Console 要求你证明"拥有一台 Android 设备":装 **Google Play Cons
 ## 1. 上传密钥——现在就备份
 
 ```
-C:\Users\boadb\mingli-upload-keystore.jks      ← 密钥库
+C:\Users\boadb\fatecode-upload-firedragonai.jks      ← 密钥库
 app/android/key.properties                     ← 密码
 ```
 
@@ -196,7 +199,7 @@ shared_preferences 里,照片只在设备上分析完即丢弃,没有账号、�
 
 ### 应用名称(30 字符内)
 - 中文:`知命 - 八字命盘与性格测试`
-- English:`FateCode — BaZi Chart & Fortune`
+- English:`FateCode - BaZi & Fortune`
 
 > 上架前先在 Play 商店搜一下"知命",确认没有同名应用抢占心智或引起混淆。
 

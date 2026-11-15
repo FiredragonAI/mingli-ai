@@ -1,4 +1,4 @@
-package io.cspeed.mingli_ai
+package io.github.firedragonai.mingli_ai
 
 import io.flutter.embedding.android.FlutterActivity
 

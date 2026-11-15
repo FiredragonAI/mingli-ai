@@ -17,7 +17,7 @@ if (hasKeystore) {
 }
 
 android {
-    namespace = "io.cspeed.mingli_ai"
+    namespace = "io.github.firedragonai.mingli_ai"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -27,7 +27,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.cspeed.mingli_ai"
+        applicationId = "io.github.firedragonai.mingli_ai"
         // camera / image_picker / tflite_flutter 的共同下限
         minSdk = 24
         targetSdk = flutter.targetSdkVersion

@@ -24,7 +24,7 @@ cd C:\claude\mingli-ai && git remote add origin https://github.com/<你的用户
 
 1. 到 developer.apple.com 用你的 Apple ID 注册 Apple Developer Program,$99/年,审核 1–2 天。
 2. 通过后在 [App Store Connect](https://appstoreconnect.apple.com) → 我的 App → 新建 App:
-   - Bundle ID 用 `io.cspeed.mingliAi`(与工程一致;要改的话同时改 `ios/Runner.xcodeproj` 里的 `PRODUCT_BUNDLE_IDENTIFIER`)
+   - Bundle ID 用 `io.github.firedragonai.mingliAi`(与工程一致;要改的话同时改 `ios/Runner.xcodeproj` 里的 `PRODUCT_BUNDLE_IDENTIFIER`)
    - 名称、主要语言(简体中文)
 3. 生成签名材料——**这一步通常需要 Mac 上的 Keychain 导出 .p12**。没有 Mac 的两个替代办法:
    - **用 OpenSSL 在 Windows 生成**:`openssl req -newkey rsa:2048 -keyout key.pem -out csr.pem`,把 `csr.pem` 上传到 Apple 开发者后台 → Certificates → 创建 *Apple Distribution* 证书 → 下载 `.cer`;再 `openssl pkcs12 -export -inkey key.pem -in cert.cer -out dist.p12`。我可以带你逐条敲。
@@ -42,7 +42,7 @@ cd C:\claude\mingli-ai && git remote add origin https://github.com/<你的用户
 | `IOS_P12_PASSWORD` | 导出 p12 时设的密码 |
 | `IOS_PROFILE_BASE64` | `.mobileprovision` 的 base64 |
 | `APPLE_TEAM_ID` | 开发者后台 Membership 页的 Team ID(10 位) |
-| `IOS_BUNDLE_ID` | `io.cspeed.mingliAi` |
+| `IOS_BUNDLE_ID` | `io.github.firedragonai.mingliAi` |
 | `ASC_KEY_ID` | App Store Connect API Key ID |
 | `ASC_ISSUER_ID` | Issuer ID |
 | `ASC_KEY_BASE64` | `.p8` 文件的 base64 |
