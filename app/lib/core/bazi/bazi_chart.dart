@@ -255,10 +255,14 @@ class BaziChart {
   }
 
   /// 供后端 / AI 使用的结构化 JSON。**所有推算都在这里完成,模型只做解读。**
+  ///
+  /// 这个方法的产物**只会发往云端**(本地存档走 ProfileStore 的 BirthInput.toJson()),
+  /// 所以这里把姓名摘掉:提示词从未引用它(只用 input.year 判断未成年),
+  /// 而隐私政策明确承诺不上传姓名。见 test/chart_payload_privacy_test.dart。
   Map<String, dynamic> toJson() {
     final clock = calendarDateFromJulianDay(effectiveJdUt + chinaTimezoneHours / 24);
     return {
-      'input': input.toJson(),
+      'input': input.toJson()..remove('name'),
       'gender': input.gender.chartLabel,
       'summary': summaryLine,
       // 出生时间不确定时,时柱、命宫、身宫、起运时刻都是估算——模型解读时必须说明
